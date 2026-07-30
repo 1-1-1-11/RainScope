@@ -1796,3 +1796,102 @@ input {
     transition: none;
   }
 }
+
+/* ── 实况城市搜索(Open-Meteo)── */
+.radar-console__live h3 {
+  margin: 0 0 7px;
+  color: var(--radar-text-dim);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.radar-live-form {
+  display: flex;
+  gap: 6px;
+}
+
+.radar-live-form input {
+  width: 100%;
+  min-width: 0;
+  height: 30px;
+  padding: 0 9px;
+  border: 1px solid var(--radar-hairline-soft);
+  border-radius: 4px;
+  background: rgba(34, 211, 238, 0.05);
+  color: rgba(224, 244, 250, 0.94);
+  font: 500 11px/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  outline: none;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.radar-live-form input:focus {
+  border-color: var(--radar-hairline);
+  background: rgba(34, 211, 238, 0.1);
+}
+
+.radar-live-form button {
+  height: 30px;
+  padding: 0 12px;
+  flex: none;
+  border: 1px solid var(--radar-hairline);
+  border-radius: 4px;
+  background: rgba(34, 211, 238, 0.12);
+  color: var(--radar-cyan);
+  font-size: 11px;
+  cursor: pointer;
+  transition: background-color 160ms ease;
+}
+
+.radar-live-form button:hover {
+  background: rgba(34, 211, 238, 0.22);
+}
+
+.radar-live-results {
+  margin: 6px 0 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--radar-hairline-soft);
+  border-radius: 4px;
+  list-style: none;
+}
+
+.radar-live-results[hidden] {
+  display: none;
+}
+
+.radar-live-results button {
+  display: block;
+  width: 100%;
+  padding: 7px 9px;
+  border: 0;
+  border-bottom: 1px solid rgba(34, 211, 238, 0.08);
+  background: transparent;
+  color: rgba(224, 244, 250, 0.88);
+  font-size: 10px;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+}
+
+.radar-live-results li:last-child button {
+  border-bottom: 0;
+}
+
+.radar-live-results button:hover {
+  background: rgba(34, 211, 238, 0.1);
+  color: var(--radar-cyan);
+}
+
+.radar-live-status {
+  min-height: 0;
+  margin: 6px 0 0;
+  color: rgba(148, 196, 210, 0.66);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.radar-live-status:empty {
+  display: none;
+}

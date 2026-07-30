@@ -58,6 +58,16 @@ const messages = {
     levelHeavy: '大雨',
     levelStorm: '暴雨',
     levelExtreme: '大暴雨',
+    liveTitle: '实况城市',
+    livePlaceholder: '搜索城市，如 郑州',
+    liveSearch: '搜索',
+    liveSearching: '搜索中…',
+    liveNoResults: '没有找到匹配城市',
+    liveLoading: '正在拉取实况降水…',
+    liveApplied: ({ name, date }) => `已加载 ${name} ${date} 的实况+预报曲线。`,
+    liveFailed: '实况拉取失败，已保留当前数据集',
+    sourceLive: 'Open-Meteo 实况 + 预报',
+    datasetLive: '实况城市',
     description: '将 24 小时逐时降雨数据转化为可交互的实时粒子雨景。切换数据集或拖动降雨曲线，观察雨幕随数据重塑。',
     socialDescription: '真实事件锚定的 24 小时降雨曲线，实时重塑由 Three.js 与 WebGL 驱动的粒子雨幕。',
     socialImageAlt: '由 24 小时降雨数据生成的液态金属粒子雨幕',
@@ -152,6 +162,16 @@ const messages = {
     levelHeavy: 'Heavy',
     levelStorm: 'Storm',
     levelExtreme: 'Extreme',
+    liveTitle: 'Live city',
+    livePlaceholder: 'Search a city, e.g. Zhengzhou',
+    liveSearch: 'Search',
+    liveSearching: 'Searching…',
+    liveNoResults: 'No matching city',
+    liveLoading: 'Fetching live precipitation…',
+    liveApplied: ({ name, date }) => `Loaded live + forecast curve for ${name} (${date}).`,
+    liveFailed: 'Live fetch failed; current dataset kept',
+    sourceLive: 'Open-Meteo live + forecast',
+    datasetLive: 'Live city',
     description: 'Turn 24 hours of hourly rainfall data into an interactive real-time particle landscape. Switch datasets or drag the rainfall curve to reshape the rain curtain.',
     socialDescription: 'Event-anchored 24-hour rainfall curves reshape a real-time particle landscape powered by Three.js and WebGL.',
     socialImageAlt: 'Liquid-metal particle rain generated from 24 hours of rainfall data',
@@ -290,6 +310,122 @@ const RADAR_DIST_BANDS = [
   { id: 'moderate', test: (v) => v >= 10 && v < 25 },
   { id: 'light', test: (v) => v >= 1 && v < 10 }
 ];
+
+// ── Open-Meteo 实况模式 ── 免费、无密钥、允许跨域。
+// 地理编码搜索城市 → forecast API 拉取当地今日 00:00 起 25 个逐时降水
+// (已过的为实况、未到的为预报)，失败时保留当前数据集。
+const liveSearchForm = document.querySelector('#live-search-form');
+const liveCityInput = document.querySelector('#live-city-input');
+const liveResults = document.querySelector('#live-results');
+const liveStatus = document.querySelector('#live-status');
+let liveCity = null;
+
+function setLiveStatus(text) {
+  if (liveStatus) liveStatus.textContent = text;
+}
+
+function liveDatasetOption() {
+  return rainfallDatasetSelect?.querySelector('option[value="live"]') || null;
+}
+
+function clearLiveCity() {
+  liveCity = null;
+  const option = liveDatasetOption();
+  if (option) option.hidden = true;
+}
+
+async function searchLiveCities(query) {
+  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=6&language=zh&format=json`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`geocoding ${response.status}`);
+  const payload = await response.json();
+  return Array.isArray(payload.results) ? payload.results : [];
+}
+
+async function fetchLivePrecipitation(place) {
+  const url = 'https://api.open-meteo.com/v1/forecast'
+    + `?latitude=${place.latitude}&longitude=${place.longitude}`
+    + '&hourly=precipitation&past_days=1&forecast_days=2&timezone=auto';
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`forecast ${response.status}`);
+  const payload = await response.json();
+  const times = payload?.hourly?.time;
+  const values = payload?.hourly?.precipitation;
+  if (!Array.isArray(times) || !Array.isArray(values)) {
+    throw new Error('forecast payload missing hourly series');
+  }
+  // 找到当地“今天 00:00”的下标，取 00:00–24:00 共 25 个点(含次日 00:00)。
+  const nowHour = payload?.current?.time || new Date().toISOString();
+  const todayPrefix = String(nowHour).slice(0, 10);
+  let start = times.findIndex((t) => t === `${todayPrefix}T00:00`);
+  if (start === -1) start = Math.max(0, times.findIndex((t) => t >= `${todayPrefix}T01:00`) - 1);
+  const slice = values.slice(start, start + 25).map((v) => (Number.isFinite(v) && v >= 0 ? v : 0));
+  if (slice.length !== 25) throw new Error(`expected 25 hourly values, got ${slice.length}`);
+  return { values: slice, date: times[start].slice(0, 10) };
+}
+
+async function applyLiveCity(place) {
+  setLiveStatus(i18n('liveLoading'));
+  try {
+    const { values, date } = await fetchLivePrecipitation(place);
+    const name = [place.name, place.admin1 || place.country || ''].filter(Boolean).join(' · ');
+    liveCity = { name, date };
+    activeRainfallDatasetId = 'live';
+    const option = liveDatasetOption();
+    if (option) option.hidden = false;
+    if (rainfallDatasetSelect) rainfallDatasetSelect.value = 'live';
+    applyRainfallData(values);
+    if (rainfallDatasetNote) {
+      rainfallDatasetNote.removeAttribute('data-i18n');
+      rainfallDatasetNote.textContent = `${name} · ${date} · Open-Meteo`;
+    }
+    if (rainfallEditorStatus) {
+      rainfallEditorStatus.textContent = i18n('liveApplied', { name, date });
+    }
+    setLiveStatus(i18n('liveApplied', { name, date }));
+  } catch (error) {
+    clearLiveCity();
+    setLiveStatus(i18n('liveFailed'));
+  }
+}
+
+function renderLiveResults(places) {
+  if (!liveResults) return;
+  liveResults.textContent = '';
+  if (!places.length) {
+    liveResults.hidden = true;
+    setLiveStatus(i18n('liveNoResults'));
+    return;
+  }
+  for (const place of places) {
+    const item = document.createElement('li');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = [place.name, place.admin1, place.country].filter(Boolean).join(' · ');
+    button.addEventListener('click', () => {
+      liveResults.hidden = true;
+      applyLiveCity(place);
+    });
+    item.appendChild(button);
+    liveResults.appendChild(item);
+  }
+  liveResults.hidden = false;
+}
+
+liveSearchForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const query = (liveCityInput?.value || '').trim();
+  if (!query) return;
+  setLiveStatus(i18n('liveSearching'));
+  try {
+    renderLiveResults(await searchLiveCities(query));
+    if (liveResults && !liveResults.hidden) setLiveStatus('');
+  } catch (error) {
+    setLiveStatus(i18n('liveFailed'));
+  }
+});
+
+if (liveCityInput) liveCityInput.placeholder = i18n('livePlaceholder');
 root.dataset.locale = locale;
 root.dataset.launchContext = isXEmbedded ? 'x-embedded' : 'standard';
 
@@ -6083,19 +6219,26 @@ function updateRadarConsole() {
     if (label) label.textContent = `${Math.round(pct)}%`;
   }
 
-  const dataset = RAINFALL_DATASETS[activeRainfallDatasetId];
-  const optionText = rainfallDatasetSelect?.selectedOptions?.[0]?.textContent?.trim();
-  const datasetName = optionText || dataset?.id || activeRainfallDatasetId;
+  let datasetName;
+  let eventText;
+  let sourceKey;
+  if (activeRainfallDatasetId === 'live' && liveCity) {
+    datasetName = liveCity.name;
+    eventText = liveCity.date;
+    sourceKey = 'sourceLive';
+  } else {
+    const dataset = RAINFALL_DATASETS[activeRainfallDatasetId];
+    const optionText = rainfallDatasetSelect?.selectedOptions?.[0]?.textContent?.trim();
+    datasetName = optionText || dataset?.id || activeRainfallDatasetId;
+    eventText = dataset?.eventDate || '—';
+    sourceKey = activeRainfallDatasetId === 'custom' || !dataset
+      ? 'sourceCustom'
+      : dataset.reconstructed ? 'sourceReconstructed' : 'sourceDemo';
+  }
   if (radarFieldDataset) radarFieldDataset.textContent = datasetName;
   if (radarSiteDataset) radarSiteDataset.textContent = datasetName;
-  if (radarFieldEvent) radarFieldEvent.textContent = dataset?.eventDate || '—';
-  if (radarSiteSource) {
-    radarSiteSource.textContent = i18n(
-      activeRainfallDatasetId === 'custom' || !dataset
-        ? 'sourceCustom'
-        : dataset.reconstructed ? 'sourceReconstructed' : 'sourceDemo'
-    );
-  }
+  if (radarFieldEvent) radarFieldEvent.textContent = eventText;
+  if (radarSiteSource) radarSiteSource.textContent = i18n(sourceKey);
 }
 
 function updateDomState(force = false) {
@@ -6447,6 +6590,7 @@ function initRainfallEditor() {
   }
 
   function markRainfallDatasetModified() {
+    clearLiveCity();
     activeRainfallDatasetId = 'custom';
     if (rainfallDatasetSelect) rainfallDatasetSelect.value = 'custom';
     if (rainfallDatasetNote) {
@@ -6522,6 +6666,7 @@ function initRainfallEditor() {
       window.clearTimeout(liveApplyTimer);
       liveApplyTimer = null;
     }
+    clearLiveCity();
     activeRainfallDatasetId = dataset.id;
     applyRainfallData(dataset.values);
     syncInputs(activeRainfall);

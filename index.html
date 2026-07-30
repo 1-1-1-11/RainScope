@@ -99,6 +99,15 @@
             <span class="radar-console__unit">mm/h</span>
           </div>
         </div>
+        <section class="radar-console__live">
+          <h3 data-i18n="liveTitle">实况城市</h3>
+          <form id="live-search-form" class="radar-live-form" novalidate>
+            <input id="live-city-input" type="text" autocomplete="off" spellcheck="false" />
+            <button type="submit" data-i18n="liveSearch">搜索</button>
+          </form>
+          <ul id="live-results" class="radar-live-results" hidden></ul>
+          <p id="live-status" class="radar-live-status" role="status" aria-live="polite"></p>
+        </section>
         <dl class="radar-console__stats">
           <div><dt data-i18n="statMax">最大值</dt><dd><span id="radar-stat-max">—</span><small>mm/h</small></dd></div>
           <div><dt data-i18n="statMean">平均值</dt><dd><span id="radar-stat-mean">—</span><small>mm/h</small></dd></div>
@@ -246,6 +255,7 @@
                     <option value="zhengzhou-720" data-i18n="datasetZhengzhou720">郑州 7·20（重建）</option>
                     <option value="beijing-23-7" data-i18n="datasetBeijing237">北京 23·7（重建）</option>
                     <option value="custom" data-i18n="datasetCustom" disabled>已修改曲线</option>
+                    <option value="live" data-i18n="datasetLive" hidden>实况城市</option>
                   </select>
                 </label>
               </div>
