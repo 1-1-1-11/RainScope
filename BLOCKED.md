@@ -4,6 +4,7 @@
 
 - 用户已明确要求公开；`update_site_access(access_mode=public)` 返回确定性业务错误：`sites_publish_disabled` / `Publishing Sites to the internet is not enabled for this workspace.`，不是参数猜测或登录问题。
 - `get_site` 随后确认访问策略仍为 `custom`，仅 owner 一名用户、无群组；匿名 Node 请求现场为 `HTTP_STATUS=401`、`BYTES=2192`。
+- 2026-07-30 用户再次要求切公开后已原样重试，仍得到同一工作区级错误；紧随其后的匿名请求仍为 `401 / 2192 bytes`，没有部分生效。
 - 未改成 `workspace_all` 冒充公开，也未使用或持久化任何绕过登录能力。要公开必须由工作区管理员先启用 Sites internet publishing；启用后重试相同 access update 并用匿名 HTTP 200 验证。
 
 ## 已解除：Sites v2 archive 上传与生产部署
