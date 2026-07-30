@@ -5,6 +5,7 @@
 - 代码真相以 `main` 为准；发布前必须在同一 SHA 通过 `npm.cmd run check`、`node scripts/smoke.mjs` 与 `npm.cmd run test:sites`。
 - 生产真相以 canonical URL 实际返回的 HTML 与资产为准；保存 Sites 版本、Git 推送或本地构建均不单独代表上线。
 - 当前开放项仅见 `BLOCKED.md` 顶部两项：主包分包与 `.nvmrc`；9:16 导出和 Open-Meteo 已实现，不再作为待裁决事项。
+- Sites v4 发布尝试：源码 `a6e69d2` 已推送且归档 `422799580EC8B9388075DA5C6CADF375B0D6D73784012F730384E4C2AED66B59` 本地通过；2026-07-30 两次保存均在 OpenAI 文件 Blob 上传阶段失败，未生成 v4、未切换生产。恢复后必须从当时的已推送 `main` 重新构建同 SHA 归档，再保存、部署并做 live verification。
 - 下方是按阶段保留的历史验收记录，不可替代上述现役状态或新的 live verification。
 
 ## 2026-07-30 开源发布任务（RainScope 身份切换）

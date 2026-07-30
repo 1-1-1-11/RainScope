@@ -5,6 +5,13 @@
 - 666KB 主包分包（Vite chunk >500 kB 警告）：涉及构建配置与代码改动，超出本次白名单。
 - 修改 `.nvmrc`：不在允许修改清单内，待裁决。
 
+## 阻塞：Sites v4 archive 上传（2026-07-30）
+
+- 目标源码 `a6e69d2cf14dabd17989e7fbbcd5061ecfe07275` 已推送；`npm.cmd run build:sites` 退出码 0，归档 `422799580EC8B9388075DA5C6CADF375B0D6D73784012F730384E4C2AED66B59` 含 `dist/client`、`dist/server/index.js` 与 `dist/.openai/hosting.json`。
+- Sites 保存 v4 两次均在 OpenAI 文件服务失败：首次为 `chatgpt.com/backend-api/files` request send failure；第二次为 `sdmntprwestus3.oaiusercontent.com` Blob connect failure。失败发生在版本创建前。
+- `list_site_versions` 确认仅有既存 v1–v3，当前生产未被替换。未尝试无 archive 的源码版本，因为该形态不能提供 `dist/server/index.js`。
+- 恢复条件：OpenAI 文件上传可用后，从当时已推送的 `main` 重建 archive，保存新版本、部署，并以 canonical URL 的新资产和浏览器主路径验证；不要复用本地旧 archive 或把保存成功当作上线。
+
 ## 已解除：工作区禁用互联网发布，站点无法改为公开
 
 - 用户已明确要求公开；`update_site_access(access_mode=public)` 返回确定性业务错误：`sites_publish_disabled` / `Publishing Sites to the internet is not enabled for this workspace.`，不是参数猜测或登录问题。
