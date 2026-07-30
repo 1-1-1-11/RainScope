@@ -215,6 +215,17 @@
         >
           <span aria-hidden="true">VS</span>
         </a>
+        <button
+          id="export-open"
+          class="export-open"
+          type="button"
+          aria-label="9:16 竖屏导出"
+          title="9:16 竖屏导出"
+          data-i18n-aria-label="exportOpen"
+          data-i18n-title="exportOpen"
+        >
+          <span aria-hidden="true">9:16</span>
+        </button>
       </nav>
 
       <aside
@@ -385,6 +396,33 @@
       </a>
 
     </main>
+
+    <div class="export-modal" id="export-modal" role="dialog" aria-modal="true" aria-labelledby="export-title" hidden>
+      <div class="export-panel">
+        <h2 id="export-title" data-i18n="exportTitle">9:16 竖屏导出</h2>
+        <label class="export-field">
+          <span data-i18n="exportDuration">时长</span>
+          <select id="export-duration">
+            <option value="5">5s</option>
+            <option value="8" selected>8s</option>
+            <option value="12">12s</option>
+          </select>
+        </label>
+        <label class="export-field export-field--check">
+          <input type="checkbox" id="export-scrub" checked />
+          <span data-i18n="exportScrub">录制期间播放 00:00→24:00</span>
+        </label>
+        <div class="export-progress" id="export-progress" hidden>
+          <span id="export-progress-bar"></span>
+        </div>
+        <p class="export-status" id="export-status" role="status" aria-live="polite"></p>
+        <div class="export-actions">
+          <button id="export-start" class="export-primary" type="button" data-i18n="exportStart">开始录制</button>
+          <button id="export-snapshot" type="button" data-i18n="exportSnapshot">导出当前帧 PNG</button>
+          <button id="export-cancel" type="button" data-i18n="exportCancel">取消</button>
+        </div>
+      </div>
+    </div>
 
     <section class="compare-shell" hidden aria-label="双雨对比">
       <div class="compare-bar">

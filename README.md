@@ -20,6 +20,9 @@ RainScope is a noncommercial enhancement fork of [Rainform / 数据成雨](https
   ![128 参数效果控制台 / 128-parameter effect console](.github/assets/effect-console-desktop.jpg)
 
 - **冻结 smoke + CI / Frozen smoke + CI**：smoke 以哈希锁定 `LICENSE`、`NOTICE.md` 与判卷脚本，CI 连续跑 `npm run check`、smoke 与 Node 测试三道验收。Hash-frozen smoke protects license and grading files; CI runs check, smoke and Node tests on every push.
+- **雷达终端设计语言 / Radar terminal UI**：雨幕按真实 mm/h 走多普勒色阶染色（青→绿→黄→橙→红），配顶部状态带、强度色阶标尺与实时数据控制台（最大/平均/累计/时长 + 五档强度分布）。Rain strands are dyed by real intensity on a Doppler-style scale, with a status bar, intensity legend and a live stats console.
+- **Open-Meteo 实况城市 / Live cities**：搜索任意城市即可把当地今日 00:00–24:00 的真实降水（已过为实况、未到为预报）驱动雨幕，离线或失败自动回退内置数据集。Search any city to drive the scene with real hourly precipitation, with graceful offline fallback.
+- **双雨对比 + 竖屏导出 / Compare & vertical export**：`?compare=1` 双场景同屏对比（如郑州 7·20 vs 你的城市实况）；一键导出 1080×1920 竖屏视频（可自动播放 00:00→24:00 全天过程）或当前帧 PNG。Side-by-side storm comparison and one-click 9:16 video/PNG export for short-video platforms.
 
 > **源码许可 / Source terms:** 源码仅授权非商业学习、修改与分发；禁止商业使用、商业产品集成、广告和品牌项目。Source is available for noncommercial use only and is not OSI-approved open-source software. See [LICENSE](LICENSE) and [COMMERCIAL_USE.md](COMMERCIAL_USE.md).
 

@@ -69,6 +69,16 @@ const messages = {
     sourceLive: 'Open-Meteo 实况 + 预报',
     datasetLive: '实况城市',
     compareOpen: '双雨对比模式',
+    exportOpen: '9:16 竖屏导出',
+    exportTitle: '9:16 竖屏导出',
+    exportDuration: '时长',
+    exportScrub: '录制期间播放 00:00→24:00',
+    exportStart: '开始录制',
+    exportCancel: '取消',
+    exportRecording: '录制中…',
+    exportDone: '已导出，浏览器开始下载',
+    exportUnsupported: '当前浏览器不支持视频录制',
+    exportSnapshot: '导出当前帧 PNG',
     description: '将 24 小时逐时降雨数据转化为可交互的实时粒子雨景。切换数据集或拖动降雨曲线，观察雨幕随数据重塑。',
     socialDescription: '真实事件锚定的 24 小时降雨曲线，实时重塑由 Three.js 与 WebGL 驱动的粒子雨幕。',
     socialImageAlt: '由 24 小时降雨数据生成的液态金属粒子雨幕',
@@ -174,6 +184,16 @@ const messages = {
     sourceLive: 'Open-Meteo live + forecast',
     datasetLive: 'Live city',
     compareOpen: 'Side-by-side compare',
+    exportOpen: '9:16 vertical export',
+    exportTitle: '9:16 vertical export',
+    exportDuration: 'Duration',
+    exportScrub: 'Scrub 00:00→24:00 while recording',
+    exportStart: 'Start recording',
+    exportCancel: 'Cancel',
+    exportRecording: 'Recording…',
+    exportDone: 'Exported — download started',
+    exportUnsupported: 'Video recording is not supported in this browser',
+    exportSnapshot: 'Export current frame PNG',
     description: 'Turn 24 hours of hourly rainfall data into an interactive real-time particle landscape. Switch datasets or drag the rainfall curve to reshape the rain curtain.',
     socialDescription: 'Event-anchored 24-hour rainfall curves reshape a real-time particle landscape powered by Three.js and WebGL.',
     socialImageAlt: 'Liquid-metal particle rain generated from 24 hours of rainfall data',
@@ -1447,6 +1467,7 @@ window.visualViewport?.addEventListener('resize', onResize);
 window.addEventListener('blur', onInteractionInterrupted);
 
 initRainfallEditor();
+initVerticalExport();
 if (TUNING_CONSOLE_ENABLED) initTuningPanelV2();
 root.dataset.releaseChannel = ENABLE_TUNING_CONSOLE ? 'development' : 'public';
 
@@ -1475,6 +1496,126 @@ root.dataset.releaseChannel = ENABLE_TUNING_CONSOLE ? 'development' : 'public';
 }
 
 animate();
+
+// ── 9:16 竖屏导出 ── 中心裁切场景画面,MediaRecorder 录制 webm;可选录制期间
+// 自动把选中小时从 00:00 播到 24:00,一条视频讲完一整场暴雨。
+let exportSession = null;
+
+function initVerticalExport() {
+  const openButton = document.querySelector('#export-open');
+  const modal = document.querySelector('#export-modal');
+  if (!openButton || !modal) return;
+  const durationSelect = modal.querySelector('#export-duration');
+  const scrubCheck = modal.querySelector('#export-scrub');
+  const progress = modal.querySelector('#export-progress');
+  const progressBar = modal.querySelector('#export-progress-bar');
+  const status = modal.querySelector('#export-status');
+  const startButton = modal.querySelector('#export-start');
+  const snapshotButton = modal.querySelector('#export-snapshot');
+  const cancelButton = modal.querySelector('#export-cancel');
+
+  const setOpen = (open) => { modal.hidden = !open; };
+  openButton.addEventListener('click', () => setOpen(true));
+  cancelButton.addEventListener('click', () => { if (!exportSession) setOpen(false); });
+  modal.addEventListener('pointerdown', (event) => {
+    if (event.target === modal && !exportSession) setOpen(false);
+  });
+
+  // 源画布中心裁出 9:16 竖条,等比铺到 1080×1920 输出画布。
+  function drawVerticalFrame(ctx) {
+    const src = renderer.domElement;
+    const sw = Math.max(1, Math.min(src.width, Math.round(src.height * 9 / 16)));
+    const sx = Math.round((src.width - sw) / 2);
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, 1080, 1920);
+    ctx.drawImage(src, sx, 0, sw, src.height, 0, 0, 1080, 1920);
+  }
+
+  snapshotButton.addEventListener('click', () => {
+    // 同一同步任务内先渲染再取帧,无需 preserveDrawingBuffer。
+    renderer.render(scene, camera);
+    const out = document.createElement('canvas');
+    out.width = 1080;
+    out.height = 1920;
+    drawVerticalFrame(out.getContext('2d'));
+    out.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `rainscope-9x16-${activeRainfallDatasetId}-${Date.now()}.png`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    }, 'image/png');
+  });
+
+  startButton.addEventListener('click', () => {
+    if (exportSession) return;
+    if (!('MediaRecorder' in window) || !HTMLCanvasElement.prototype.captureStream) {
+      status.textContent = i18n('exportUnsupported');
+      return;
+    }
+    const duration = Number(durationSelect.value) || 8;
+    const scrub = scrubCheck.checked;
+    const out = document.createElement('canvas');
+    out.width = 1080;
+    out.height = 1920;
+    const ctx = out.getContext('2d');
+    const stream = out.captureStream(0);
+    const track = stream.getVideoTracks()[0];
+    const mimeType = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']
+      .find((candidate) => MediaRecorder.isTypeSupported(candidate)) || '';
+    let recorder;
+    try {
+      recorder = new MediaRecorder(
+        stream,
+        mimeType ? { mimeType, videoBitsPerSecond: 10_000_000 } : undefined
+      );
+    } catch {
+      status.textContent = i18n('exportUnsupported');
+      return;
+    }
+    const chunks = [];
+    recorder.addEventListener('dataavailable', (event) => {
+      if (event.data?.size) chunks.push(event.data);
+    });
+    recorder.addEventListener('stop', () => {
+      const blob = new Blob(chunks, { type: 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `rainscope-9x16-${activeRainfallDatasetId}-${Date.now()}.webm`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      status.textContent = i18n('exportDone');
+      progress.hidden = true;
+      startButton.disabled = false;
+    });
+    const startedAt = performance.now();
+    exportSession = {
+      tick() {
+        drawVerticalFrame(ctx);
+        track.requestFrame?.();
+        const progressValue = clamp((performance.now() - startedAt) / (duration * 1000), 0, 1);
+        if (scrub) {
+          state.selectedHour = progressValue * 24;
+          state.selectedActive = true;
+          state.burst = Math.max(state.burst, 0.6);
+        }
+        progressBar.style.width = `${progressValue * 100}%`;
+        if (progressValue >= 1) {
+          exportSession = null;
+          recorder.stop();
+        }
+      }
+    };
+    progress.hidden = false;
+    progressBar.style.width = '0%';
+    status.textContent = i18n('exportRecording');
+    startButton.disabled = true;
+    recorder.start();
+  });
+}
 
 function animate() {
   const delta = Math.min(clock.getDelta(), 0.04);
@@ -1514,6 +1655,7 @@ function animate() {
   updateDomState();
 
   renderer.render(scene, camera);
+  if (exportSession) exportSession.tick();
   requestAnimationFrame(animate);
 }
 

@@ -2065,3 +2065,164 @@ html[data-embed="1"] .selection-readout {
     background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.65) 50%, transparent);
   }
 }
+
+/* ── 9:16 竖屏导出 ── */
+.export-open {
+  display: inline-flex;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(34, 211, 238, 0.78);
+  font: 700 9px/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+.export-open:hover,
+.export-open:focus-visible {
+  background: rgba(34, 211, 238, 0.12);
+  color: var(--radar-cyan);
+  outline: none;
+}
+
+.export-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1800;
+  display: grid;
+  padding: 20px;
+  place-items: center;
+  background: rgba(2, 5, 9, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.export-modal[hidden] {
+  display: none;
+}
+
+.export-panel {
+  display: grid;
+  width: min(340px, calc(100vw - 40px));
+  padding: 18px 18px 14px;
+  gap: 12px;
+  border: 1px solid var(--radar-hairline);
+  border-radius: 8px;
+  background: var(--radar-panel);
+  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.5);
+  color: rgba(224, 244, 250, 0.92);
+}
+
+.export-panel h2 {
+  margin: 0;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--radar-hairline-soft);
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+}
+
+.export-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: rgba(148, 196, 210, 0.8);
+  font-size: 11px;
+}
+
+.export-field select {
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--radar-hairline-soft);
+  border-radius: 4px;
+  background: rgba(34, 211, 238, 0.05);
+  color: rgba(224, 244, 250, 0.94);
+  font: 500 11px/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.export-field option {
+  color: #111827;
+}
+
+.export-field--check {
+  justify-content: flex-start;
+  cursor: pointer;
+}
+
+.export-field--check input {
+  accent-color: var(--radar-cyan);
+}
+
+.export-progress {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgba(34, 211, 238, 0.1);
+}
+
+.export-progress[hidden] {
+  display: none;
+}
+
+#export-progress-bar {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--radar-cyan);
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+}
+
+.export-status {
+  min-height: 0;
+  margin: 0;
+  color: rgba(148, 196, 210, 0.72);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.export-status:empty {
+  display: none;
+}
+
+.export-actions {
+  display: grid;
+  gap: 7px;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.export-actions button {
+  min-height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--radar-hairline-soft);
+  border-radius: 5px;
+  background: rgba(34, 211, 238, 0.06);
+  color: rgba(224, 244, 250, 0.9);
+  font-size: 10px;
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.export-actions button:hover {
+  border-color: var(--radar-hairline);
+  background: rgba(34, 211, 238, 0.14);
+}
+
+.export-actions button:disabled {
+  cursor: wait;
+  opacity: 0.45;
+}
+
+.export-actions .export-primary {
+  border-color: var(--radar-hairline);
+  background: rgba(34, 211, 238, 0.16);
+  color: var(--radar-cyan);
+  font-weight: 650;
+}

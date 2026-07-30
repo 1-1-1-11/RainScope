@@ -13,6 +13,9 @@
 - 雨幕按真实毫米/小时雷达染色：新增 `RADAR_SCALE`（<0.1 深青 / <2.5 / <8 青 / <16 绿 / <32 黄 / <64 橙 / ≥64 红，对应气象业务等级），chain 新增未钳制 `rainfall` 字段穿透到 `writeRainColor`/`writeExtensionRainColor` 6 个调用点，强降雨保留 12% 高光白点；主题 tint 由 #0091ff 改 #22d3ee（含 deriveGlobalTheme 默认分支）。
 - 新 UI：顶部雷达状态带（品牌/站点/事件/模式/采样/运行状态）、左侧强度色阶图例（0–100+ mm/h）、右侧降雨数据控制台（当前时刻大读数+等级徽章、最大/平均/累计/时长、五档强度分布条、站点信息），统计全部由 activeRainfall 实时计算；底部时间轴改雷达青玻璃条；归属链接移至右下角。新增 26 个双语 i18n 键（66→92），`documentTitle` 改「雨境 RainScope · 暴雨数据可视化」。
 - 验收：`npm.cmd run check` 退出码 0（92 键）、`node scripts/smoke.mjs` 退出码 0、`npm.cmd run test:sites` 5/5；dev server 实测 HTTP 200 且新 UI 元素齐备（WebBridge 扩展未连接，视觉复核留给用户预览）。已提交 `f452937` 并推送，远端一致。
+- v3 二期（Open-Meteo 实况，`2cd43d4`）：雷达控制台新增「实况城市」搜索（geocoding-api，中文结果），选定后 forecast API 拉当地今日 00:00 起 25 个逐时降水（past_days=1+forecast_days=2，已过为实况、未到为预报），`activeRainfallDatasetId='live'` 全流程复用既有管线；失败/离线保留当前数据集。状态带/站点信息联动显示城市名、日期、Open-Meteo 来源。Node 实测郑州地理编码与 25 点切片正确。i18n 92→102。
+- v3 三期（双雨对比，`afb5a22`）：`?compare=1` 对比外壳（左右 iframe 各跑完整场景 + 数据集/城市选择器，默认郑州 7·20 vs 北京 23·7，竖屏自动上下分屏），`?embed=1` 嵌入模式隐藏仪器 chrome，`?dataset=`/`?city=` URL 预置；bootstrap 在 compare 模式跳过主场景启动。为放行功能修改 `public/_headers`：connect-src 增加两个 Open-Meteo 域名，frame-ancestors 'none'→'self'、X-Frame-Options DENY→SAMEORIGIN（用户新功能指令所需，production 必需）。i18n 102→103。
+- v3 四期（9:16 竖屏导出）：工具栏新增 9:16 按钮，弹窗可选 5/8/12 秒与「录制期间播放 00:00→24:00」；2D 画布中心裁切 1080×1920，captureStream(0)+requestFrame 在 animate 渲染后同步取帧（preserveDrawingBuffer=false 安全），MediaRecorder 优先 vp9；另支持当前帧 PNG 快照。文件按数据集命名。i18n 103→113。README 差异节补记四条 v3 能力。
 - 开工哈希：LICENSE `c0ea4a89…48fabbe5`、NOTICE.md `214e29e3…c8c6c529`、scripts/check-project.mjs `1ed5afcd…47de67`、src/rainfall-datasets.js `f2e22e93…a8c179`。
 
 1. 状态：任务 0–4、最终浏览器、HTTP、三路对抗审查与产品 v2 生产部署均已完成；2026-07-30 验收复验确认站点已公开可访问、14 个范围外临时文件已授权清理，`BLOCKED.md` 无未解除条目。
