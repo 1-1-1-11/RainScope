@@ -17,13 +17,19 @@ function isXEmbeddedLaunch() {
     || /(^|\.)(?:x\.com|twitter\.com|t\.co)$/i.test(referrerHost);
 }
 
-const requestedLanguage = new URLSearchParams(window.location.search).get('lang');
+const bootParams = new URLSearchParams(window.location.search);
+const requestedLanguage = bootParams.get('lang');
 const preferredLanguage = requestedLanguage
   || (isXEmbeddedLaunch() ? 'en' : navigator.languages?.[0] || navigator.language || 'en');
 const bootstrapLocale = /^zh(?:-|$)/i.test(preferredLanguage) ? 'zh-CN' : 'en';
+const compareMode = bootParams.get('compare') === '1';
+const embedMode = bootParams.get('embed') === '1';
+if (compareMode) document.documentElement.dataset.compare = '1';
+if (embedMode) document.documentElement.dataset.embed = '1';
 const gateMessages = {
   'zh-CN': {
     documentTitle: '雨境 RainScope · 暴雨数据可视化',
+    compareTitle: '雨境 RainScope · 双雨对比',
     rotateTitle: '请旋转至横屏',
     rotateDescription: '旋转手机以完整体验数据雨幕',
     rotateSoundSuggestion: '建议开启声音',
@@ -32,6 +38,7 @@ const gateMessages = {
   },
   en: {
     documentTitle: 'RainScope · Storm Rainfall',
+    compareTitle: 'RainScope · Storm Compare',
     rotateTitle: 'Rotate to landscape',
     rotateDescription: 'Turn your phone sideways for the complete data-rain experience',
     rotateSoundSuggestion: 'Sound on recommended',
@@ -41,8 +48,12 @@ const gateMessages = {
 };
 
 document.documentElement.lang = bootstrapLocale;
-document.title = gateMessages[bootstrapLocale].documentTitle;
-document.documentElement.dataset.appState = portraitMedia.matches ? 'waiting-landscape' : 'loading';
+document.title = compareMode
+  ? gateMessages[bootstrapLocale].compareTitle
+  : gateMessages[bootstrapLocale].documentTitle;
+document.documentElement.dataset.appState = compareMode
+  ? 'compare'
+  : portraitMedia.matches ? 'waiting-landscape' : 'loading';
 document.querySelectorAll('[data-i18n]').forEach(element => {
   const message = gateMessages[bootstrapLocale][element.dataset.i18n];
   if (message) element.textContent = message;
@@ -99,10 +110,12 @@ function handleViewportChange() {
   bootRainform();
 }
 
-handleViewportChange();
-if (portraitMedia.addEventListener) {
-  portraitMedia.addEventListener('change', handleViewportChange);
-} else {
-  portraitMedia.addListener(handleViewportChange);
+if (!compareMode) {
+  handleViewportChange();
+  if (portraitMedia.addEventListener) {
+    portraitMedia.addEventListener('change', handleViewportChange);
+  } else {
+    portraitMedia.addListener(handleViewportChange);
+  }
+  window.addEventListener('orientationchange', handleViewportChange, { passive: true });
 }
-window.addEventListener('orientationchange', handleViewportChange, { passive: true });

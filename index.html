@@ -205,6 +205,16 @@
             </svg>
           </span>
         </button>
+        <a
+          class="compare-open"
+          href="?compare=1"
+          aria-label="双雨对比模式"
+          title="双雨对比模式"
+          data-i18n-aria-label="compareOpen"
+          data-i18n-title="compareOpen"
+        >
+          <span aria-hidden="true">VS</span>
+        </a>
       </nav>
 
       <aside
@@ -375,6 +385,61 @@
       </a>
 
     </main>
+
+    <section class="compare-shell" hidden aria-label="双雨对比">
+      <div class="compare-bar">
+        <span class="compare-bar__brand">雨境 <strong>RAINSCOPE</strong><em>· 对比 COMPARE</em></span>
+        <div class="compare-picker">
+          <select id="compare-dataset-a" aria-label="左侧数据集 Dataset A">
+            <option value="zhengzhou-720" selected>郑州 7·20</option>
+            <option value="beijing-23-7">北京 23·7</option>
+            <option value="demo">演示 Demo</option>
+          </select>
+          <input id="compare-city-a" type="text" placeholder="或输城市 or city" aria-label="左侧实况城市" autocomplete="off" spellcheck="false" />
+        </div>
+        <span class="compare-bar__vs" aria-hidden="true">VS</span>
+        <div class="compare-picker">
+          <select id="compare-dataset-b" aria-label="右侧数据集 Dataset B">
+            <option value="beijing-23-7" selected>北京 23·7</option>
+            <option value="zhengzhou-720">郑州 7·20</option>
+            <option value="demo">演示 Demo</option>
+          </select>
+          <input id="compare-city-b" type="text" placeholder="或输城市 or city" aria-label="右侧实况城市" autocomplete="off" spellcheck="false" />
+        </div>
+        <a class="compare-bar__exit" href="?" aria-label="退出对比">退出 ×</a>
+      </div>
+      <div class="compare-grid">
+        <iframe id="compare-frame-a" class="compare-frame" title="对比左侧雨景"></iframe>
+        <span class="compare-divider" aria-hidden="true"></span>
+        <iframe id="compare-frame-b" class="compare-frame" title="对比右侧雨景"></iframe>
+      </div>
+    </section>
+
+    <script type="module">
+      // 双雨对比外壳:仅在 ?compare=1 时激活;主场景由 bootstrap 在此模式下跳过启动。
+      const compareParams = new URLSearchParams(window.location.search);
+      if (compareParams.get('compare') === '1') {
+        const shell = document.querySelector('.compare-shell');
+        const pickers = ['a', 'b'].map((side) => ({
+          select: document.querySelector(`#compare-dataset-${side}`),
+          city: document.querySelector(`#compare-city-${side}`),
+          frame: document.querySelector(`#compare-frame-${side}`)
+        }));
+        const srcFor = ({ select, city }) => {
+          const name = city.value.trim();
+          return name
+            ? `?embed=1&city=${encodeURIComponent(name)}`
+            : `?embed=1&dataset=${select.value}`;
+        };
+        const sync = (picker) => { picker.frame.src = srcFor(picker); };
+        for (const picker of pickers) {
+          picker.select.addEventListener('change', () => { picker.city.value = ''; sync(picker); });
+          picker.city.addEventListener('change', () => sync(picker));
+          sync(picker);
+        }
+        shell.hidden = false;
+      }
+    </script>
 
     <script type="module" src="/src/bootstrap.js"></script>
   </body>

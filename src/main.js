@@ -68,6 +68,7 @@ const messages = {
     liveFailed: '实况拉取失败，已保留当前数据集',
     sourceLive: 'Open-Meteo 实况 + 预报',
     datasetLive: '实况城市',
+    compareOpen: '双雨对比模式',
     description: '将 24 小时逐时降雨数据转化为可交互的实时粒子雨景。切换数据集或拖动降雨曲线，观察雨幕随数据重塑。',
     socialDescription: '真实事件锚定的 24 小时降雨曲线，实时重塑由 Three.js 与 WebGL 驱动的粒子雨幕。',
     socialImageAlt: '由 24 小时降雨数据生成的液态金属粒子雨幕',
@@ -172,6 +173,7 @@ const messages = {
     liveFailed: 'Live fetch failed; current dataset kept',
     sourceLive: 'Open-Meteo live + forecast',
     datasetLive: 'Live city',
+    compareOpen: 'Side-by-side compare',
     description: 'Turn 24 hours of hourly rainfall data into an interactive real-time particle landscape. Switch datasets or drag the rainfall curve to reshape the rain curtain.',
     socialDescription: 'Event-anchored 24-hour rainfall curves reshape a real-time particle landscape powered by Three.js and WebGL.',
     socialImageAlt: 'Liquid-metal particle rain generated from 24 hours of rainfall data',
@@ -1447,6 +1449,31 @@ window.addEventListener('blur', onInteractionInterrupted);
 initRainfallEditor();
 if (TUNING_CONSOLE_ENABLED) initTuningPanelV2();
 root.dataset.releaseChannel = ENABLE_TUNING_CONSOLE ? 'development' : 'public';
+
+// URL 预置:?dataset=<id> 或 ?city=<名称>,供对比模式 iframe 与分享链接使用。
+{
+  const bootParams = new URLSearchParams(window.location.search);
+  const presetDatasetId = bootParams.get('dataset');
+  const presetCityName = bootParams.get('city');
+  if (presetDatasetId && RAINFALL_DATASETS[presetDatasetId]) {
+    const dataset = RAINFALL_DATASETS[presetDatasetId];
+    clearLiveCity();
+    activeRainfallDatasetId = dataset.id;
+    if (rainfallDatasetSelect) rainfallDatasetSelect.value = dataset.id;
+    if (rainfallDatasetNote) {
+      rainfallDatasetNote.dataset.i18n = dataset.noteKey;
+      rainfallDatasetNote.textContent = i18n(dataset.noteKey);
+    }
+    applyRainfallData(dataset.values);
+  } else if (presetCityName) {
+    searchLiveCities(presetCityName)
+      .then((places) => (places.length
+        ? applyLiveCity(places[0])
+        : setLiveStatus(i18n('liveNoResults'))))
+      .catch(() => setLiveStatus(i18n('liveFailed')));
+  }
+}
+
 animate();
 
 function animate() {
@@ -6853,6 +6880,7 @@ function initRainfallEditor() {
       liveApplyTimer = null;
     }
     const dataset = RAINFALL_DATASETS[DEFAULT_RAINFALL_DATASET_ID];
+    clearLiveCity();
     activeRainfallDatasetId = dataset.id;
     if (rainfallDatasetSelect) rainfallDatasetSelect.value = dataset.id;
     if (rainfallDatasetNote) {
