@@ -35,3 +35,4 @@
 33. Sites 部署启动（2026-07-30）：账户无已有站点；已创建“暴雨数据可视化”，并把返回的 project_id 原样写入 `.openai/hosting.json`。访问模式保持创建时的 owner-only custom，不擅自改公开。
 34. Sites 最小适配：不改现有 Vite 客户端和常规 `dist`，仅新增静态 ASSETS Worker、stdlib 打包脚本与 Node 内置测试；`.sites-build/` 产出 `client/`、`server/index.js`、`.openai/hosting.json`，未新增依赖。
 35. Sites 本地验收：首次 `cpSync` 在 Windows 沙箱对 `\\?\` 目标报 EIO，改为同一脚本内的逐目录 `mkdirSync + copyFileSync` 后通过；`npm.cmd run build:sites` 全绿，Worker 测试 4/4，frozen smoke 退出码 0。
+36. Sites archive 首次保存被服务端明确拒绝（未生成版本/部署）：入口必须是 `dist/server/index.js`，不能把 `server/` 放 archive 顶层；已按服务端错误与官方模板改为 `.sites-build/dist/{client,server,.openai}`，等待新提交复验。

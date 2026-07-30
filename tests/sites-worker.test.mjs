@@ -64,7 +64,7 @@ test('does not turn missing API or write requests into the app shell', async () 
 });
 
 test('emits the Sites packaging contract', async () => {
-  await access(new URL('../.sites-build/client/index.html', import.meta.url));
-  await access(new URL('../.sites-build/server/index.js', import.meta.url));
-  await access(new URL('../.sites-build/.openai/hosting.json', import.meta.url));
+  await access(new URL('../.sites-build/dist/client/index.html', import.meta.url));
+  await access(new URL('../.sites-build/dist/server/index.js', import.meta.url));
+  await access(new URL('../.sites-build/dist/.openai/hosting.json', import.meta.url));
 });
