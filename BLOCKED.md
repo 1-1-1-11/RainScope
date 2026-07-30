@@ -1,12 +1,19 @@
 # BLOCKED
 
-## 当前阻塞 1：owner-only 登录门后的线上内容无法代验
+## 当前阻塞 1：工作区禁用互联网发布，站点无法改为公开
 
-- Sites 生产部署已成功，但访问策略保持创建时的 owner-only custom；匿名 Node 请求得到 Cloudflare 403，真实浏览器得到 `Sign in required` 401 并进入账号登录流程。
-- 未触碰用户 Google/ChatGPT 登录，也未调用或暴露任何绕过令牌；因此线上 WebGL、数据集和时间轴需用户本人登录后打开生产 URL 亲验。
-- 本地同一提交的 build、Worker 4/4、frozen smoke 与此前真实浏览器验收均通过；这里仅缺“登录后的生产内容”证据，不代表部署失败。
+- 用户已明确要求公开；`update_site_access(access_mode=public)` 返回确定性业务错误：`sites_publish_disabled` / `Publishing Sites to the internet is not enabled for this workspace.`，不是参数猜测或登录问题。
+- `get_site` 随后确认访问策略仍为 `custom`，仅 owner 一名用户、无群组；匿名 Node 请求现场为 `HTTP_STATUS=401`、`BYTES=2192`。
+- 未改成 `workspace_all` 冒充公开，也未使用或输出任何绕过登录能力。要公开必须由工作区管理员先启用 Sites internet publishing；启用后重试相同 access update 并用匿名 HTTP 200 验证。
 
-## 当前阻塞 2：浏览器工具留下 14 个范围外临时文件
+## 当前阻塞 2：Sites 文件服务拒绝上传 v2 archive，生产仍是 v1
+
+- 控制台增强源码已提交并推送：本地/远端 `main` 均为 `1862cc64b97a39a9d96ef81161f1205b44bdc909`；从 clean HEAD 重建的 archive SHA-256 为 `830BB44CFEE5649C15157A61C70F7A65FE60124EA31001EA10F16FE9B696A4D0`，入口、`tuning-panel`、`releaseChannel="public"` 与安全范围标记均通过。
+- 四次 archive 保存均在 OpenAI 文件上传端点断线；版本列表确认没有 archive-backed v2。连接层恢复后，源码-only 版本 2 已保存，但 `archive_storage=null`。
+- 对源码-only v2 发起的部署 `appgdep_6a6ae1f88f248191b5fc308a1940a51f` 由平台终止为 `failed`：`missing dist/server/index.js`，且没有 provider deployment / URL，因此未替换既有生产版本。
+- 当前线上仍为先前成功的 owner-only v1，缺少本次效果控制台。恢复条件是 Sites 文件服务可上传该 archive；届时应从当前 clean HEAD 重新构建并保存新的 archive-backed 版本，再部署，不应重试源码-only v2。
+
+## 当前阻塞 3：浏览器工具留下 14 个范围外临时文件
 
 - 受控 Playwright 工具把临时文件写到了工作区根 `D:\Desktop\抖音可视化雨量\.playwright-mcp\`，而任务只授权修改 `rainform-plus/`。
 - 精确文件：`console-2026-07-30T03-22-32-578Z.log`（8756 字节）、`console-2026-07-30T03-59-04-229Z.log`（482 字节）、`page-2026-07-29T10-59-52-493Z.yml`（1014 字节）、`page-2026-07-29T11-49-43-644Z.yml`（1084 字节）、`page-2026-07-30T03-22-36-592Z.yml`（509 字节）、`page-2026-07-30T03-55-40-820Z.yml`（1564 字节）、`page-2026-07-30T03-59-04-550Z.yml`（1128 字节）、`page-2026-07-30T04-00-10-381Z.yml`（1395 字节）、`page-2026-07-30T04-05-27-119Z.yml`（41587 字节）、`page-2026-07-30T04-13-52-058Z.yml`（1232 字节）、`page-2026-07-30T04-27-23-515Z.yml`（1084 字节）、`page-2026-07-30T04-49-12-429Z.yml`（1084 字节）、`page-2026-07-30T04-53-58-749Z.yml`（40245 字节）、`page-2026-07-30T04-58-42-661Z.yml`（1260 字节），合计 102424 字节。
