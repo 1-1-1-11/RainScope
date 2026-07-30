@@ -36,3 +36,5 @@
 34. Sites 最小适配：不改现有 Vite 客户端和常规 `dist`，仅新增静态 ASSETS Worker、stdlib 打包脚本与 Node 内置测试；`.sites-build/` 产出 `client/`、`server/index.js`、`.openai/hosting.json`，未新增依赖。
 35. Sites 本地验收：首次 `cpSync` 在 Windows 沙箱对 `\\?\` 目标报 EIO，改为同一脚本内的逐目录 `mkdirSync + copyFileSync` 后通过；`npm.cmd run build:sites` 全绿，Worker 测试 4/4，frozen smoke 退出码 0。
 36. Sites archive 首次保存被服务端明确拒绝（未生成版本/部署）：入口必须是 `dist/server/index.js`，不能把 `server/` 放 archive 顶层；已按服务端错误与官方模板改为 `.sites-build/dist/{client,server,.openai}`，等待新提交复验。
+37. Sites 源码闭环：本地/远端 `main` 均为 `262080a3e1c282cdd6709f554dc0ebc9ee4a3704`；从该 clean HEAD 重建后，原判卷、Worker 4/4、frozen smoke 全绿，archive 含 `dist/client`、`dist/server/index.js`、`dist/.openai/hosting.json`。
+38. Sites 已保存版本 1 并生产部署成功：`https://storm-rainfall-visualization.shiqiyu-ai.chatgpt.site`。访问策略保持 owner-only custom；匿名请求/浏览器分别被 403/401 登录门拦截，未代操作用户登录，线上内容级验证记录于 `BLOCKED.md`。
