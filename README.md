@@ -4,6 +4,8 @@
 [![Live Demo](https://img.shields.io/badge/live_demo-storm--rainfall--visualization.shiqiyu--ai.chatgpt.site-2ea44f)](https://storm-rainfall-visualization.shiqiyu-ai.chatgpt.site)
 [![CI](https://github.com/1-1-1-11/RainScope/actions/workflows/ci.yml/badge.svg)](https://github.com/1-1-1-11/RainScope/actions/workflows/ci.yml)
 
+> **Deployment note:** the Live Demo serves its independently deployed version; it never proves that production matches source `main`. The current production state and any release block are recorded at the top of [PROGRESS.md](PROGRESS.md).
+
 ![雨境 RainScope · 郑州 7·20 暴雨 16:00 时刻与时间轴](.github/assets/timeline-zhengzhou-16.jpg)
 
 雨境 RainScope 是基于 [Rainform / 数据成雨](https://rainform.pages.dev/)（© 2026 afterimage，PolyForm Noncommercial 1.0.0）的非商业增强 fork，由 shiqiyu 维护。它把 00:00–24:00 的 25 个逐时降雨数据点转化为实时 Three.js/WebGL 粒子雨景，并增加事实锚定的暴雨重建数据集、数据集切换、时间轴读数与水花层。
