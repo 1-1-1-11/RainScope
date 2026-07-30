@@ -1477,6 +1477,8 @@ window.addEventListener('orientationchange', onResize);
 window.visualViewport?.addEventListener('resize', onResize);
 window.addEventListener('blur', onInteractionInterrupted);
 
+let exportSession = null;
+
 initRainfallEditor();
 initVerticalExport();
 if (TUNING_CONSOLE_ENABLED) initTuningPanelV2();
@@ -1510,7 +1512,6 @@ animate();
 
 // ── 9:16 竖屏导出 ── 中心裁切场景画面,MediaRecorder 录制 webm;可选录制期间
 // 自动把选中小时从 00:00 播到 24:00,一条视频讲完一整场暴雨。
-let exportSession = null;
 
 function initVerticalExport() {
   const openButton = document.querySelector('#export-open');
