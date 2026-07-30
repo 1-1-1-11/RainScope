@@ -31,7 +31,33 @@ const preferredLanguage = requestedLanguage
 const locale = /^zh(?:-|$)/i.test(preferredLanguage) ? 'zh-CN' : 'en';
 const messages = {
   'zh-CN': {
-    documentTitle: '暴雨数据可视化 · 数据雨幕',
+    documentTitle: '雨境 RainScope · 暴雨数据可视化',
+    radarTagline: '暴雨雷达终端',
+    radarStation: '站点',
+    radarEvent: '事件',
+    radarMode: '模式',
+    radarModeValue: '降雨强度',
+    radarPoints: '采样',
+    radarStatus: '运行中',
+    radarLegendTitle: '强度 mm/h',
+    consoleTitle: '降雨数据',
+    statMax: '最大值',
+    statMean: '平均值',
+    statTotal: '累计雨量',
+    statDuration: '降雨时长',
+    distTitle: '强度分布',
+    siteTitle: '站点信息',
+    siteDataset: '数据集',
+    siteSource: '来源',
+    sourceDemo: '原作演示数据',
+    sourceReconstructed: '官方锚点 + 重建',
+    sourceCustom: '手动修改',
+    levelNone: '无雨',
+    levelLight: '小雨',
+    levelModerate: '中雨',
+    levelHeavy: '大雨',
+    levelStorm: '暴雨',
+    levelExtreme: '大暴雨',
     description: '将 24 小时逐时降雨数据转化为可交互的实时粒子雨景。切换数据集或拖动降雨曲线，观察雨幕随数据重塑。',
     socialDescription: '真实事件锚定的 24 小时降雨曲线，实时重塑由 Three.js 与 WebGL 驱动的粒子雨幕。',
     socialImageAlt: '由 24 小时降雨数据生成的液态金属粒子雨幕',
@@ -99,7 +125,33 @@ const messages = {
     webglInterrupted: '图形环境暂时中断，正在等待浏览器恢复。'
   },
   en: {
-    documentTitle: 'Storm Rainfall Visualization · Data Rain',
+    documentTitle: 'RainScope · Storm Rainfall',
+    radarTagline: 'STORM RAIN RADAR',
+    radarStation: 'Station',
+    radarEvent: 'Event',
+    radarMode: 'Mode',
+    radarModeValue: 'Rain intensity',
+    radarPoints: 'Samples',
+    radarStatus: 'Operational',
+    radarLegendTitle: 'mm/h',
+    consoleTitle: 'Rainfall data',
+    statMax: 'Max',
+    statMean: 'Mean',
+    statTotal: 'Total',
+    statDuration: 'Duration',
+    distTitle: 'Intensity dist',
+    siteTitle: 'Site info',
+    siteDataset: 'Dataset',
+    siteSource: 'Source',
+    sourceDemo: 'Original demo data',
+    sourceReconstructed: 'Official anchors + reconstruction',
+    sourceCustom: 'Manual edits',
+    levelNone: 'None',
+    levelLight: 'Light',
+    levelModerate: 'Moderate',
+    levelHeavy: 'Heavy',
+    levelStorm: 'Storm',
+    levelExtreme: 'Extreme',
     description: 'Turn 24 hours of hourly rainfall data into an interactive real-time particle landscape. Switch datasets or drag the rainfall curve to reshape the rain curtain.',
     socialDescription: 'Event-anchored 24-hour rainfall curves reshape a real-time particle landscape powered by Three.js and WebGL.',
     socialImageAlt: 'Liquid-metal particle rain generated from 24 hours of rainfall data',
@@ -217,6 +269,27 @@ const rainfallPreciseEditor = document.querySelector('#rainfall-precise-editor')
 const rainfallDatasetSelect = document.querySelector('#rainfall-dataset-select');
 const rainfallDatasetNote = document.querySelector('#rainfall-dataset-note');
 const rainfallTimeline = document.querySelector('#rainfall-timeline');
+
+// ── 雷达终端 UI ── 顶部状态带、右侧数据控制台与当前读数。
+const radarFieldDataset = document.querySelector('#radar-field-dataset');
+const radarFieldEvent = document.querySelector('#radar-field-event');
+const radarFieldPoints = document.querySelector('#radar-field-points');
+const radarCurrentTime = document.querySelector('#radar-current-time');
+const radarCurrentValue = document.querySelector('#radar-current-value');
+const radarCurrentLevel = document.querySelector('#radar-current-level');
+const radarStatMax = document.querySelector('#radar-stat-max');
+const radarStatMean = document.querySelector('#radar-stat-mean');
+const radarStatTotal = document.querySelector('#radar-stat-total');
+const radarStatDuration = document.querySelector('#radar-stat-duration');
+const radarSiteDataset = document.querySelector('#radar-site-dataset');
+const radarSiteSource = document.querySelector('#radar-site-source');
+const RADAR_DIST_BANDS = [
+  { id: 'extreme', test: (v) => v >= 100 },
+  { id: 'storm', test: (v) => v >= 50 && v < 100 },
+  { id: 'heavy', test: (v) => v >= 25 && v < 50 },
+  { id: 'moderate', test: (v) => v >= 10 && v < 25 },
+  { id: 'light', test: (v) => v >= 1 && v < 10 }
+];
 root.dataset.locale = locale;
 root.dataset.launchContext = isXEmbedded ? 'x-embedded' : 'standard';
 
@@ -576,6 +649,25 @@ const PALETTE = {
   waterDark: new THREE.Color(0x283040)
 };
 
+// 雷达色阶：按真实毫米/小时把雨幕染色(多普勒降水回波色标)。
+// 阈值取气象业务等级:微量 <0.1、小雨 <2.5、中雨 <8、大雨 <16、暴雨 <32、大暴雨及以上。
+const RADAR_SCALE = [
+  { max: 0.1, color: new THREE.Color(0x0d2733) },
+  { max: 2.5, color: new THREE.Color(0x155e75) },
+  { max: 8, color: new THREE.Color(0x22d3ee) },
+  { max: 16, color: new THREE.Color(0x4ade80) },
+  { max: 32, color: new THREE.Color(0xfacc15) },
+  { max: 64, color: new THREE.Color(0xfb923c) },
+  { max: Infinity, color: new THREE.Color(0xef4444) }
+];
+
+function radarColorForRainfall(rainfallMm) {
+  for (const band of RADAR_SCALE) {
+    if (rainfallMm < band.max) return band.color;
+  }
+  return RADAR_SCALE[RADAR_SCALE.length - 1].color;
+}
+
 // 把 JS 数字转成 GLSL 的 float 字面量(整数补 ".0")，用于把 TUNING 的值注入着色器。
 const glf = (n) => (Number.isInteger(n) ? `${n}.0` : `${n}`);
 const glslVec3 = (rgb) => `vec3(${rgb.map(glf).join(', ')})`;
@@ -636,7 +728,7 @@ const TUNING = {
     darkColor: 0x000000,
     midColor: 0xc2cbdb,
     brightColor: 0xfafbff,
-    tintColor: 0x0091ff,
+    tintColor: 0x22d3ee,
     pearlBandFrequency: 5.5,
     pearlBandSpeed: -2.55,
     pearlSpecularPower: 30,
@@ -807,7 +899,7 @@ function deriveGlobalTheme(baseColor) {
       panel: 0x080c14,
       panelTop: 0x1c2230,
       panelBottom: 0x060910,
-      accent: 0x0091ff,
+      accent: 0x22d3ee,
       textStrong: 0xfafbff,
       textMid: 0xc2cbdb,
       textSoft: 0x8f9db8,
@@ -820,7 +912,7 @@ function deriveGlobalTheme(baseColor) {
       metalDark: 0x000000,
       metalMid: 0xc2cbdb,
       metalBright: 0xfafbff,
-      metalTint: 0x0091ff,
+      metalTint: 0x22d3ee,
       waterDeep: 0x000000,
       waterSurface: 0x2b3240,
       mist: 0xabb6bf,
@@ -1354,6 +1446,7 @@ function applyRainfallData(values) {
   updateRainSoundFromData();
   state.readoutKey = '';
   updateDomState(true);
+  updateRadarConsole();
 }
 
 function rebuildRainfallSystems() {
@@ -1940,6 +2033,7 @@ function createRainChainSystem(baseCount, ambientCount = 0, downpourCount = 0) {
     seedIndex: new Uint32Array(count),
     hour: new Float32Array(count),
     strength: new Float32Array(count),
+    rainfall: new Float32Array(count),
     presence: new Float32Array(count),
     stormWeight: new Float32Array(count),
     waterfallTop: new Float32Array(count),
@@ -2027,6 +2121,7 @@ function createRainChainSystem(baseCount, ambientCount = 0, downpourCount = 0) {
     chain.resetSeed[i] = RAIN_LAYOUT_SEED;
     chain.seedIndex[i] = i;
     chain.strength[i] = strength;
+    chain.rainfall[i] = sampleVisualRainfall(hour);
     chain.presence[i] = presence;
     chain.near[i] = near;
     chain.top[i] = top;
@@ -2070,6 +2165,7 @@ function createRainChainSystem(baseCount, ambientCount = 0, downpourCount = 0) {
     chain.resetSeed[i] = AMBIENT_RAIN_SEED;
     chain.seedIndex[i] = localIndex;
     chain.strength[i] = strength;
+    chain.rainfall[i] = sampleVisualRainfall(hour);
     chain.presence[i] = presence;
     chain.near[i] = near;
     chain.top[i] = rainCeilingY;
@@ -2134,6 +2230,7 @@ function createRainChainSystem(baseCount, ambientCount = 0, downpourCount = 0) {
     chain.resetSeed[i] = DOWNPOUR_RAIN_SEED;
     chain.seedIndex[i] = localIndex;
     chain.strength[i] = strength;
+    chain.rainfall[i] = sampleVisualRainfall(hour);
     chain.presence[i] = presence;
     chain.near[i] = near;
     chain.top[i] = Math.min(rainCeilingY, WATER_LEVEL + topHeight);
@@ -2252,7 +2349,8 @@ function createRainChainSystem(baseCount, ambientCount = 0, downpourCount = 0) {
         index,
         strength,
         randomRange(0.72, 1.12, random) * (0.82 + near * 0.3) * (0.78 + weight * 0.36),
-        random
+        random,
+        chain.rainfall[i]
       );
     }
 
@@ -2270,7 +2368,8 @@ function createRainChainSystem(baseCount, ambientCount = 0, downpourCount = 0) {
         colorIndex,
         strength,
         randomRange(0.2, 0.36, random) * (0.78 + near * 0.24),
-        random
+        random,
+        chain.rainfall[i]
       );
       lineColors[colorIndex + 3] = lineColors[colorIndex] * 1.12;
       lineColors[colorIndex + 4] = lineColors[colorIndex + 1] * 1.12;
@@ -2312,7 +2411,8 @@ function createRainChainSystem(baseCount, ambientCount = 0, downpourCount = 0) {
         randomRange(0.34, 0.62, ambientRandom),
         RAIN_ROLE.AMBIENT,
         0,
-        ambientRandom
+        ambientRandom,
+        chain.rainfall[i]
       );
     }
 
@@ -2330,7 +2430,8 @@ function createRainChainSystem(baseCount, ambientCount = 0, downpourCount = 0) {
         randomRange(0.1, 0.2, ambientRandom),
         RAIN_ROLE.AMBIENT,
         0,
-        ambientRandom
+        ambientRandom,
+        chain.rainfall[i]
       );
       lineColors[colorIndex + 3] = lineColors[colorIndex] * 1.08;
       lineColors[colorIndex + 4] = lineColors[colorIndex + 1] * 1.08;
@@ -2388,7 +2489,8 @@ function createRainChainSystem(baseCount, ambientCount = 0, downpourCount = 0) {
         randomRange(0.38, style === 2 ? 0.86 : 0.68, downpourRandom),
         RAIN_ROLE.DOWNPOUR,
         style,
-        downpourRandom
+        downpourRandom,
+        chain.rainfall[i]
       );
     }
 
@@ -2408,7 +2510,8 @@ function createRainChainSystem(baseCount, ambientCount = 0, downpourCount = 0) {
         randomRange(0.2, style === 2 ? 0.42 : 0.34, downpourRandom),
         RAIN_ROLE.DOWNPOUR,
         style,
-        downpourRandom
+        downpourRandom,
+        chain.rainfall[i]
       );
       lineColors[colorIndex + 3] = lineColors[colorIndex] * 1.1;
       lineColors[colorIndex + 4] = lineColors[colorIndex + 1] * 1.1;
@@ -5618,10 +5721,17 @@ function localHourFocus(hour, targetHour) {
   return Math.max(0, 1 - distance / 2.25);
 }
 
-function writeRainColor(target, index, strength, brightness, random = Math.random) {
-  const color = strength > 0.62 && random() < 0.46
-    ? PALETTE.pearlBright
-    : random() < 0.68 ? PALETTE.pearlMid : PALETTE.pearlDark;
+function writeRainColor(target, index, strength, brightness, random = Math.random, rainfallMm) {
+  let color;
+  if (Number.isFinite(rainfallMm)) {
+    // 雷达染色:按该小时真实雨量取色阶，强降雨带保留少量高光白点增加层次。
+    const sparkle = rainfallMm >= 8 && random() < 0.12;
+    color = sparkle ? PALETTE.pearlBright : radarColorForRainfall(rainfallMm);
+  } else {
+    color = strength > 0.62 && random() < 0.46
+      ? PALETTE.pearlBright
+      : random() < 0.68 ? PALETTE.pearlMid : PALETTE.pearlDark;
+  }
   const gain = brightness * (0.76 + strength * 0.28);
   target[index] = color.r * gain;
   target[index + 1] = color.g * gain;
@@ -5635,15 +5745,21 @@ function writeExtensionRainColor(
   brightness,
   role,
   style,
-  random = Math.random
+  random = Math.random,
+  rainfallMm
 ) {
   const brightChance = role === RAIN_ROLE.AMBIENT
     ? 0.01
     : style === 2 ? 0.72 : 0.018;
   const tone = random();
-  const color = tone < brightChance
-    ? PALETTE.pearlBright
-    : tone < brightChance + 0.68 ? PALETTE.pearlMid : PALETTE.pearlDark;
+  let color;
+  if (Number.isFinite(rainfallMm)) {
+    color = tone < brightChance ? PALETTE.pearlBright : radarColorForRainfall(rainfallMm);
+  } else {
+    color = tone < brightChance
+      ? PALETTE.pearlBright
+      : tone < brightChance + 0.68 ? PALETTE.pearlMid : PALETTE.pearlDark;
+  }
   const gain = brightness * (0.76 + strength * 0.28);
   target[index] = color.r * gain;
   target[index + 1] = color.g * gain;
@@ -5929,6 +6045,59 @@ function applyCameraPreset() {
   root.dataset.initialCameraView = 'front-facing';
 }
 
+function rainfallLevelKey(value) {
+  if (value < 0.1) return 'levelNone';
+  if (value < 2.5) return 'levelLight';
+  if (value < 8) return 'levelModerate';
+  if (value < 16) return 'levelHeavy';
+  if (value < 32) return 'levelStorm';
+  return 'levelExtreme';
+}
+
+function updateRadarCurrent(timeText, value) {
+  if (!radarCurrentValue || !radarCurrentTime || !radarCurrentLevel) return;
+  radarCurrentTime.textContent = timeText;
+  radarCurrentValue.textContent = value.toFixed(1);
+  const levelKey = rainfallLevelKey(value);
+  radarCurrentLevel.textContent = i18n(levelKey);
+  radarCurrentLevel.dataset.level = levelKey;
+}
+
+function updateRadarConsole() {
+  const hours = activeRainfall.slice(0, 24);
+  const max = hours.reduce((peak, value) => Math.max(peak, value), 0);
+  const total = hours.reduce((sum, value) => sum + value, 0);
+  const duration = hours.filter((value) => value >= 0.1).length;
+  if (radarStatMax) radarStatMax.textContent = max.toFixed(1);
+  if (radarStatMean) radarStatMean.textContent = (total / 24).toFixed(1);
+  if (radarStatTotal) radarStatTotal.textContent = total.toFixed(1);
+  if (radarStatDuration) radarStatDuration.textContent = String(duration);
+  if (radarFieldPoints) radarFieldPoints.textContent = `${activeRainfall.length} PTS`;
+
+  for (const band of RADAR_DIST_BANDS) {
+    const count = hours.filter(band.test).length;
+    const pct = (count / 24) * 100;
+    const bar = document.querySelector(`#radar-dist-${band.id}`);
+    const label = document.querySelector(`#radar-dist-${band.id}-pct`);
+    if (bar) bar.style.width = `${pct}%`;
+    if (label) label.textContent = `${Math.round(pct)}%`;
+  }
+
+  const dataset = RAINFALL_DATASETS[activeRainfallDatasetId];
+  const optionText = rainfallDatasetSelect?.selectedOptions?.[0]?.textContent?.trim();
+  const datasetName = optionText || dataset?.id || activeRainfallDatasetId;
+  if (radarFieldDataset) radarFieldDataset.textContent = datasetName;
+  if (radarSiteDataset) radarSiteDataset.textContent = datasetName;
+  if (radarFieldEvent) radarFieldEvent.textContent = dataset?.eventDate || '—';
+  if (radarSiteSource) {
+    radarSiteSource.textContent = i18n(
+      activeRainfallDatasetId === 'custom' || !dataset
+        ? 'sourceCustom'
+        : dataset.reconstructed ? 'sourceReconstructed' : 'sourceDemo'
+    );
+  }
+}
+
 function updateDomState(force = false) {
   const displayHour = state.pointerActive ? state.pointerHour : state.selectedHour;
   dashboard.classList.toggle('is-selected', state.selectedActive);
@@ -5940,6 +6109,7 @@ function updateDomState(force = false) {
   if (key !== state.readoutKey || force) {
     readoutTime.textContent = `${String(roundedHour).padStart(2, '0')}:00`;
     readoutValue.textContent = value.toFixed(1);
+    updateRadarCurrent(readoutTime.textContent, value);
     state.readoutKey = key;
   }
 

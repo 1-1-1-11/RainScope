@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="/src/styles.css" />
     <meta
       name="description"
-      content="Event-anchored 24-hour rainfall curves reshape an interactive real-time particle landscape."
+      content="雨境 RainScope：真实暴雨事件锚定的 24 小时降雨曲线，实时重塑 Three.js/WebGL 粒子雨景，雷达终端式数据界面。"
     />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="en_US" />
@@ -36,6 +36,111 @@
   <body>
     <main class="rainfall-dashboard" aria-label="交互式降雨强度珍珠雨幕" data-i18n-aria-label="dashboardAria">
       <div id="scene-root" class="scene-root" aria-label="可交互的珍珠雨幕数据图" data-i18n-aria-label="sceneAria"></div>
+
+      <header class="radar-statusbar">
+        <div class="radar-statusbar__brand">
+          <span class="radar-statusbar__mark" aria-hidden="true"></span>
+          <span class="radar-statusbar__name">雨境 <strong>RAINSCOPE</strong></span>
+          <span class="radar-statusbar__sub" data-i18n="radarTagline">暴雨雷达终端</span>
+        </div>
+        <dl class="radar-statusbar__fields">
+          <div class="radar-statusbar__field">
+            <dt data-i18n="radarStation">站点</dt>
+            <dd id="radar-field-dataset">—</dd>
+          </div>
+          <div class="radar-statusbar__field">
+            <dt data-i18n="radarEvent">事件</dt>
+            <dd id="radar-field-event">—</dd>
+          </div>
+          <div class="radar-statusbar__field">
+            <dt data-i18n="radarMode">模式</dt>
+            <dd data-i18n="radarModeValue">降雨强度</dd>
+          </div>
+          <div class="radar-statusbar__field">
+            <dt data-i18n="radarPoints">采样</dt>
+            <dd id="radar-field-points">25 PTS</dd>
+          </div>
+        </dl>
+        <span class="radar-statusbar__status">
+          <span class="radar-statusbar__dot" aria-hidden="true"></span>
+          <span data-i18n="radarStatus">运行中</span>
+        </span>
+      </header>
+
+      <aside class="radar-legend" aria-hidden="true">
+        <span class="radar-legend__title" data-i18n="radarLegendTitle">强度 mm/h</span>
+        <div class="radar-legend__body">
+          <span class="radar-legend__bar"></span>
+          <ul class="radar-legend__ticks">
+            <li>100+</li>
+            <li>64</li>
+            <li>32</li>
+            <li>16</li>
+            <li>8</li>
+            <li>2.5</li>
+            <li>0</li>
+          </ul>
+        </div>
+      </aside>
+
+      <aside class="radar-console" aria-label="降雨数据雷达面板">
+        <header class="radar-console__header">
+          <span class="radar-console__dot" aria-hidden="true"></span>
+          <h2 data-i18n="consoleTitle">降雨数据</h2>
+          <span class="radar-console__en">RAINFALL DATA</span>
+        </header>
+        <div class="radar-console__current">
+          <div class="radar-console__now">
+            <span class="radar-console__time" id="radar-current-time">18:00</span>
+            <span class="radar-console__level" id="radar-current-level" data-level="levelLight">小雨</span>
+          </div>
+          <div class="radar-console__reading">
+            <strong class="radar-console__value" id="radar-current-value">9.1</strong>
+            <span class="radar-console__unit">mm/h</span>
+          </div>
+        </div>
+        <dl class="radar-console__stats">
+          <div><dt data-i18n="statMax">最大值</dt><dd><span id="radar-stat-max">—</span><small>mm/h</small></dd></div>
+          <div><dt data-i18n="statMean">平均值</dt><dd><span id="radar-stat-mean">—</span><small>mm/h</small></dd></div>
+          <div><dt data-i18n="statTotal">累计雨量</dt><dd><span id="radar-stat-total">—</span><small>mm</small></dd></div>
+          <div><dt data-i18n="statDuration">降雨时长</dt><dd><span id="radar-stat-duration">—</span><small>h</small></dd></div>
+        </dl>
+        <section class="radar-console__dist">
+          <h3 data-i18n="distTitle">强度分布</h3>
+          <div class="radar-dist-row radar-dist-row--extreme">
+            <span class="radar-dist-label">&ge; 100</span>
+            <span class="radar-dist-track"><span class="radar-dist-bar" id="radar-dist-extreme"></span></span>
+            <span class="radar-dist-pct" id="radar-dist-extreme-pct">0%</span>
+          </div>
+          <div class="radar-dist-row radar-dist-row--storm">
+            <span class="radar-dist-label">50–100</span>
+            <span class="radar-dist-track"><span class="radar-dist-bar" id="radar-dist-storm"></span></span>
+            <span class="radar-dist-pct" id="radar-dist-storm-pct">0%</span>
+          </div>
+          <div class="radar-dist-row radar-dist-row--heavy">
+            <span class="radar-dist-label">25–50</span>
+            <span class="radar-dist-track"><span class="radar-dist-bar" id="radar-dist-heavy"></span></span>
+            <span class="radar-dist-pct" id="radar-dist-heavy-pct">0%</span>
+          </div>
+          <div class="radar-dist-row radar-dist-row--moderate">
+            <span class="radar-dist-label">10–25</span>
+            <span class="radar-dist-track"><span class="radar-dist-bar" id="radar-dist-moderate"></span></span>
+            <span class="radar-dist-pct" id="radar-dist-moderate-pct">0%</span>
+          </div>
+          <div class="radar-dist-row radar-dist-row--light">
+            <span class="radar-dist-label">1–10</span>
+            <span class="radar-dist-track"><span class="radar-dist-bar" id="radar-dist-light"></span></span>
+            <span class="radar-dist-pct" id="radar-dist-light-pct">0%</span>
+          </div>
+        </section>
+        <footer class="radar-console__site">
+          <h3 data-i18n="siteTitle">站点信息</h3>
+          <dl>
+            <div><dt data-i18n="siteDataset">数据集</dt><dd id="radar-site-dataset">—</dd></div>
+            <div><dt data-i18n="siteSource">来源</dt><dd id="radar-site-source">—</dd></div>
+          </dl>
+        </footer>
+      </aside>
 
       <section class="mobile-landscape-gate" role="status" aria-live="polite">
         <span class="mobile-landscape-gate__device" aria-hidden="true"><span></span></span>

@@ -23,7 +23,7 @@ const preferredLanguage = requestedLanguage
 const bootstrapLocale = /^zh(?:-|$)/i.test(preferredLanguage) ? 'zh-CN' : 'en';
 const gateMessages = {
   'zh-CN': {
-    documentTitle: '暴雨数据可视化 · 数据雨幕',
+    documentTitle: '雨境 RainScope · 暴雨数据可视化',
     rotateTitle: '请旋转至横屏',
     rotateDescription: '旋转手机以完整体验数据雨幕',
     rotateSoundSuggestion: '建议开启声音',
@@ -31,7 +31,7 @@ const gateMessages = {
     rotateBrowserSuggestion: '如果当前页面无法旋转，请轻点“⋮”并选择“在浏览器中打开”'
   },
   en: {
-    documentTitle: 'Storm Rainfall Visualization · Data Rain',
+    documentTitle: 'RainScope · Storm Rainfall',
     rotateTitle: 'Rotate to landscape',
     rotateDescription: 'Turn your phone sideways for the complete data-rain experience',
     rotateSoundSuggestion: 'Sound on recommended',
