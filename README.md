@@ -1,10 +1,25 @@
-# 暴雨数据可视化 / Storm Rainfall Visualization
+# 雨境 RainScope · 暴雨数据可视化
 
 [![License](https://img.shields.io/badge/license-PolyForm_Noncommercial_1.0.0-4c4c4c)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/live_demo-storm--rainfall--visualization.shiqiyu--ai.chatgpt.site-2ea44f)](https://storm-rainfall-visualization.shiqiyu-ai.chatgpt.site)
+[![CI](https://github.com/1-1-1-11/RainScope/actions/workflows/ci.yml/badge.svg)](https://github.com/1-1-1-11/RainScope/actions/workflows/ci.yml)
 
-本非商业增强版把 00:00–24:00 的 25 个逐时降雨数据点转化为实时 Three.js/WebGL 粒子雨景，并增加事实锚定的暴雨重建数据集、数据集切换、时间轴读数与水花层。
+![雨境 RainScope · 郑州 7·20 暴雨 16:00 时刻与时间轴](.github/assets/timeline-zhengzhou-16.jpg)
 
-This noncommercial enhancement turns 25 hourly rainfall values from 00:00–24:00 into an interactive Three.js/WebGL landscape, with fact-anchored storm reconstructions, dataset switching, a timeline readout and splash impacts.
+雨境 RainScope 是基于 [Rainform / 数据成雨](https://rainform.pages.dev/)（© 2026 afterimage，PolyForm Noncommercial 1.0.0）的非商业增强 fork，由 shiqiyu 维护。它把 00:00–24:00 的 25 个逐时降雨数据点转化为实时 Three.js/WebGL 粒子雨景，并增加事实锚定的暴雨重建数据集、数据集切换、时间轴读数与水花层。
+
+RainScope is a noncommercial enhancement fork of [Rainform / 数据成雨](https://rainform.pages.dev/) (© 2026 afterimage, PolyForm Noncommercial 1.0.0), maintained by shiqiyu. It turns 25 hourly rainfall values from 00:00–24:00 into an interactive Three.js/WebGL landscape, with fact-anchored storm reconstructions, dataset switching, a timeline readout and splash impacts.
+
+## 与原作的差异 / What this fork adds
+
+- **真实暴雨数据集 / Real storm datasets**：郑州 7·20（重建）16:00 峰值 201.9 mm/h、重建日合计 624.1 mm；北京 23·7（重建）保留 744.8 mm 过程累计元数据，小时锚点 111.8 mm/h（10:00）。Reconstructed Zhengzhou 7·20 (201.9 mm/h at 16:00, 624.1 mm daily) and Beijing 23·7 (744.8 mm process total, 111.8 mm/h hourly anchor) datasets.
+- **水花溅落层 / Splash impact layer**：郑州 16:00/201.9 现场实测 foam 2117、spray 1233、crowns 427 个粒子。Measured 2117 foam, 1233 spray and 427 crown particles at the Zhengzhou 16:00 peak.
+- **0–24 时间轴 / 0–24 timeline**：25 点逐时曲线配原生滑块与实时读数，拖到 16:00 即显示 201.9 mm/h。A native 0–24 h slider with live readout over the 25-point hourly curve.
+- **生产可用的 128 参数效果控制台 / Production 128-parameter effect console**：实时调节粒子、水花与画质，9 个性能输入带安全钳制上限，改动持久化。Live tuning of 128 parameters with safe clamps on 9 performance inputs and local persistence.
+
+  ![128 参数效果控制台 / 128-parameter effect console](.github/assets/effect-console-desktop.jpg)
+
+- **冻结 smoke + CI / Frozen smoke + CI**：smoke 以哈希锁定 `LICENSE`、`NOTICE.md` 与判卷脚本，CI 连续跑 `npm run check`、smoke 与 Node 测试三道验收。Hash-frozen smoke protects license and grading files; CI runs check, smoke and Node tests on every push.
 
 > **源码许可 / Source terms:** 源码仅授权非商业学习、修改与分发；禁止商业使用、商业产品集成、广告和品牌项目。Source is available for noncommercial use only and is not OSI-approved open-source software. See [LICENSE](LICENSE) and [COMMERCIAL_USE.md](COMMERCIAL_USE.md).
 

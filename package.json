@@ -2,16 +2,16 @@
   "name": "rainform",
   "version": "2.0.0",
   "private": true,
-  "description": "An interactive Three.js/WebGL rainfall landscape driven by hourly precipitation data.",
+  "description": "雨境 RainScope · 暴雨数据可视化：把真实暴雨逐时数据转化为交互式 Three.js/WebGL 雨景。An interactive Three.js/WebGL storm rainfall visualization driven by fact-anchored hourly data.",
   "license": "PolyForm-Noncommercial-1.0.0",
-  "author": "afterimage",
-  "homepage": "https://rainform.pages.dev/",
+  "author": "shiqiyu",
+  "homepage": "https://storm-rainfall-visualization.shiqiyu-ai.chatgpt.site",
   "repository": {
     "type": "git",
-    "url": "https://github.com/afterimage-lab/Rainform.git"
+    "url": "https://github.com/1-1-1-11/RainScope.git"
   },
   "bugs": {
-    "url": "https://github.com/afterimage-lab/Rainform/issues"
+    "url": "https://github.com/1-1-1-11/RainScope/issues"
   },
   "type": "module",
   "engines": {
