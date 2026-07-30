@@ -1,6 +1,6 @@
 # PROGRESS
 
-1. 状态：任务 0–4、最终浏览器、HTTP 与三路对抗审查均已完成；仅剩 `BLOCKED.md` 记录的范围外浏览器临时快照无法代删。
+1. 状态：任务 0–4、最终浏览器、HTTP、三路对抗审查与产品 v2 生产部署均已完成；公开访问仍受工作区策略阻塞，另有 `BLOCKED.md` 记录的范围外浏览器临时文件无法代删。
 2. 目标：保留原作观感与非商业许可，最小增加真实数据集切换、时间轴读数、水花层和可见归属。
 3. 顺序：先原作基线，再数据与切换，再水花，再时间轴，最后冻结 smoke、红绿反证和浏览器验收。
 4. 最大风险：暴雨大数值的构图压缩、重建数据口径与水花“明显但不糊”只能靠真实渲染共同校验。
@@ -48,3 +48,4 @@
 46. 最终部署 archive：唯一部署根为 `dist/`，含 `dist/client`、`dist/server/index.js`、`dist/.openai/hosting.json`；入口 `index-DSzbio-r.js`、main `main-BCiWNVGd.js`，控制台/公开渠道/安全范围 marker 全 True；SHA-256 `830BB44CFEE5649C15157A61C70F7A65FE60124EA31001EA10F16FE9B696A4D0`。
 47. Sites 文件上传阻塞：四次 archive 保存均在 OpenAI 文件服务发送阶段失败，版本列表无 archive-backed v2。替代的源码-only v2 绑定正确 commit 但 `archive_storage=null`；私有部署 `appgdep_6a6ae1f88f248191b5fc308a1940a51f` 明确失败于 `missing dist/server/index.js`，无 provider deployment / URL，生产 v1 未被替换。
 48. 公开访问阻塞：用户授权后调用 public access update，服务返回 `sites_publish_disabled`（工作区未启用 internet publishing）；`get_site` 仍为 owner-only custom，匿名 Node 请求为 401/2192 bytes。未改成 workspace-only 冒充公开，恢复条件与重试步骤已写入 `BLOCKED.md`。
+49. 产品 v2 已部署（2026-07-30）：从 clean HEAD `7c27ff94d9a6403231e75b3ca57db50cff559f9e` 重跑 `npm.cmd run build:sites`、Sites Node 测试 5/5 与 frozen smoke，全部退出码 0；新 archive SHA-256 为 `D6BA3FE00899B231B50B9D94C8399C9C5F5B7E156F6CFF66686EAFD655587D78`，入口及控制台/公开渠道/安全范围 marker 全通过。Sites 成功保存带 archive 的平台版本 3（产品 v2）`appgprj_6a6ab352cf18819180619b63de7720b2~appgver_dd4501ba41b08191b7271a2ea837b184`，随后部署 `appgdep_6a6ae86626c48191bbb698d4398c4c34` 终态 `succeeded`，生产 URL 为 `https://storm-rainfall-visualization.shiqiyu-ai.chatgpt.site`。再次切 public 仍返回 `sites_publish_disabled`；匿名复验为 `HTTP_STATUS=401`、`BYTES=2192`，所以 v2 已上线但目前仍仅 owner 可访问。

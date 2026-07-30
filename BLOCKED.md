@@ -4,16 +4,15 @@
 
 - 用户已明确要求公开；`update_site_access(access_mode=public)` 返回确定性业务错误：`sites_publish_disabled` / `Publishing Sites to the internet is not enabled for this workspace.`，不是参数猜测或登录问题。
 - `get_site` 随后确认访问策略仍为 `custom`，仅 owner 一名用户、无群组；匿名 Node 请求现场为 `HTTP_STATUS=401`、`BYTES=2192`。
-- 未改成 `workspace_all` 冒充公开，也未使用或输出任何绕过登录能力。要公开必须由工作区管理员先启用 Sites internet publishing；启用后重试相同 access update 并用匿名 HTTP 200 验证。
+- 未改成 `workspace_all` 冒充公开，也未使用或持久化任何绕过登录能力。要公开必须由工作区管理员先启用 Sites internet publishing；启用后重试相同 access update 并用匿名 HTTP 200 验证。
 
-## 当前阻塞 2：Sites 文件服务拒绝上传 v2 archive，生产仍是 v1
+## 已解除：Sites v2 archive 上传与生产部署
 
-- 控制台增强源码已提交并推送：本地/远端 `main` 均为 `1862cc64b97a39a9d96ef81161f1205b44bdc909`；从 clean HEAD 重建的 archive SHA-256 为 `830BB44CFEE5649C15157A61C70F7A65FE60124EA31001EA10F16FE9B696A4D0`，入口、`tuning-panel`、`releaseChannel="public"` 与安全范围标记均通过。
-- 四次 archive 保存均在 OpenAI 文件上传端点断线；版本列表确认没有 archive-backed v2。连接层恢复后，源码-only 版本 2 已保存，但 `archive_storage=null`。
-- 对源码-only v2 发起的部署 `appgdep_6a6ae1f88f248191b5fc308a1940a51f` 由平台终止为 `failed`：`missing dist/server/index.js`，且没有 provider deployment / URL，因此未替换既有生产版本。
-- 当前线上仍为先前成功的 owner-only v1，缺少本次效果控制台。恢复条件是 Sites 文件服务可上传该 archive；届时应从当前 clean HEAD 重新构建并保存新的 archive-backed 版本，再部署，不应重试源码-only v2。
+- 早前四次 archive 上传断线及源码-only 版本 2 的 `missing dist/server/index.js` 失败均未替换生产；本轮未重试该空壳版本。
+- 从 clean HEAD `7c27ff94d9a6403231e75b3ca57db50cff559f9e` 重建并验证的新 archive SHA-256 为 `D6BA3FE00899B231B50B9D94C8399C9C5F5B7E156F6CFF66686EAFD655587D78`，入口、`tuning-panel`、公开渠道与安全范围标记全部通过。
+- Sites 已保存带 archive 的平台版本 3（产品 v2）`appgprj_6a6ab352cf18819180619b63de7720b2~appgver_dd4501ba41b08191b7271a2ea837b184`；部署 `appgdep_6a6ae86626c48191bbb698d4398c4c34` 终态 `succeeded`，生产 URL 为 `https://storm-rainfall-visualization.shiqiyu-ai.chatgpt.site`。
 
-## 当前阻塞 3：浏览器工具留下 14 个范围外临时文件
+## 当前阻塞 2：浏览器工具留下 14 个范围外临时文件
 
 - 受控 Playwright 工具把临时文件写到了工作区根 `D:\Desktop\抖音可视化雨量\.playwright-mcp\`，而任务只授权修改 `rainform-plus/`。
 - 精确文件：`console-2026-07-30T03-22-32-578Z.log`（8756 字节）、`console-2026-07-30T03-59-04-229Z.log`（482 字节）、`page-2026-07-29T10-59-52-493Z.yml`（1014 字节）、`page-2026-07-29T11-49-43-644Z.yml`（1084 字节）、`page-2026-07-30T03-22-36-592Z.yml`（509 字节）、`page-2026-07-30T03-55-40-820Z.yml`（1564 字节）、`page-2026-07-30T03-59-04-550Z.yml`（1128 字节）、`page-2026-07-30T04-00-10-381Z.yml`（1395 字节）、`page-2026-07-30T04-05-27-119Z.yml`（41587 字节）、`page-2026-07-30T04-13-52-058Z.yml`（1232 字节）、`page-2026-07-30T04-27-23-515Z.yml`（1084 字节）、`page-2026-07-30T04-49-12-429Z.yml`（1084 字节）、`page-2026-07-30T04-53-58-749Z.yml`（40245 字节）、`page-2026-07-30T04-58-42-661Z.yml`（1260 字节），合计 102424 字节。
