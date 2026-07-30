@@ -357,7 +357,7 @@ function clearLiveCity() {
 }
 
 async function searchLiveCities(query) {
-  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=6&language=zh&format=json`;
+  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=6&language=${locale === 'zh-CN' ? 'zh' : 'en'}&format=json`;
   const response = await fetch(url);
   if (!response.ok) throw new Error(`geocoding ${response.status}`);
   const payload = await response.json();
@@ -376,18 +376,22 @@ async function fetchLivePrecipitation(place) {
   if (!Array.isArray(times) || !Array.isArray(values)) {
     throw new Error('forecast payload missing hourly series');
   }
-  // 找到当地“今天 00:00”的下标，取 00:00–24:00 共 25 个点(含次日 00:00)。
-  const nowHour = payload?.current?.time || new Date().toISOString();
-  const todayPrefix = String(nowHour).slice(0, 10);
-  let start = times.findIndex((t) => t === `${todayPrefix}T00:00`);
-  if (start === -1) start = Math.max(0, times.findIndex((t) => t >= `${todayPrefix}T01:00`) - 1);
+  // times 固定为 昨天/今天/明天 共 72 条当地时间(timezone=auto);
+  // 取正中间一条(今天 12:00 当地)推导“今天”,避免回落到 UTC 日期在凌晨切错整天。
+  const middle = times[Math.floor(times.length / 2)] || '';
+  const todayPrefix = String(middle).slice(0, 10);
+  const start = times.findIndex((t) => t === `${todayPrefix}T00:00`);
+  if (start === -1 || start + 25 > values.length) {
+    throw new Error('forecast hourly series does not cover a full local day');
+  }
+  // 取当地 00:00–24:00 共 25 个点(含次日 00:00)。
   const slice = values.slice(start, start + 25).map((v) => (Number.isFinite(v) && v >= 0 ? v : 0));
-  if (slice.length !== 25) throw new Error(`expected 25 hourly values, got ${slice.length}`);
   return { values: slice, date: times[start].slice(0, 10) };
 }
 
 async function applyLiveCity(place) {
   setLiveStatus(i18n('liveLoading'));
+  const previousDatasetId = activeRainfallDatasetId;
   try {
     const { values, date } = await fetchLivePrecipitation(place);
     const name = [place.name, place.admin1 || place.country || ''].filter(Boolean).join(' · ');
@@ -407,6 +411,11 @@ async function applyLiveCity(place) {
     setLiveStatus(i18n('liveApplied', { name, date }));
   } catch (error) {
     clearLiveCity();
+    // 失败时回退到进入前的数据集,避免下拉框停在已隐藏的 live 选项上。
+    activeRainfallDatasetId = previousDatasetId;
+    if (rainfallDatasetSelect && RAINFALL_DATASETS[previousDatasetId]) {
+      rainfallDatasetSelect.value = previousDatasetId;
+    }
     setLiveStatus(i18n('liveFailed'));
   }
 }
@@ -1442,6 +1451,8 @@ if (prefersReducedMotion) {
 
 syncRuntimeDatasets();
 updateDomState();
+// 首屏即填充雷达控制台统计,避免首次打开面板前显示“—”。
+updateRadarConsole();
 
 renderer.domElement.addEventListener('pointerdown', onPointerDown, { passive: true });
 renderer.domElement.addEventListener('pointermove', onPointerMove, { passive: true });

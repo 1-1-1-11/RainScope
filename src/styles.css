@@ -176,6 +176,11 @@ input {
   text-align: center;
 }
 
+/* embed(对比 iframe)内的竖屏视口由外壳负责布局,不再触发横屏门 */
+html[data-embed="1"] .mobile-landscape-gate {
+  display: none !important;
+}
+
 .mobile-landscape-gate__device {
   position: relative;
   width: 66px;

@@ -53,7 +53,7 @@ document.title = compareMode
   : gateMessages[bootstrapLocale].documentTitle;
 document.documentElement.dataset.appState = compareMode
   ? 'compare'
-  : portraitMedia.matches ? 'waiting-landscape' : 'loading';
+  : (portraitMedia.matches && !embedMode) ? 'waiting-landscape' : 'loading';
 document.querySelectorAll('[data-i18n]').forEach(element => {
   const message = gateMessages[bootstrapLocale][element.dataset.i18n];
   if (message) element.textContent = message;
@@ -103,11 +103,40 @@ function bootRainform() {
 }
 
 function handleViewportChange() {
-  if (portraitMedia.matches) {
+  if (portraitMedia.matches && !embedMode) {
     if (!bootPromise) document.documentElement.dataset.appState = 'waiting-landscape';
     return;
   }
   bootRainform();
+}
+
+// 双雨对比外壳:CSP 友好(外部脚本,无内联);主场景在 compare 模式下不启动。
+if (compareMode) {
+  const shell = document.querySelector('.compare-shell');
+  const pickers = ['a', 'b'].map((side) => ({
+    select: document.querySelector(`#compare-dataset-${side}`),
+    city: document.querySelector(`#compare-city-${side}`),
+    frame: document.querySelector(`#compare-frame-${side}`)
+  }));
+  const srcFor = ({ select, city }) => {
+    const name = city.value.trim();
+    return name
+      ? `?embed=1&city=${encodeURIComponent(name)}`
+      : `?embed=1&dataset=${select.value}`;
+  };
+  const sync = (picker) => { picker.frame.src = srcFor(picker); };
+  for (const picker of pickers) {
+    picker.select.addEventListener('change', () => { picker.city.value = ''; sync(picker); });
+    picker.city.addEventListener('change', () => sync(picker));
+    picker.city.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        sync(picker);
+      }
+    });
+    sync(picker);
+  }
+  shell.hidden = false;
 }
 
 if (!compareMode) {

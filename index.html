@@ -72,7 +72,7 @@
         <div class="radar-legend__body">
           <span class="radar-legend__bar"></span>
           <ul class="radar-legend__ticks">
-            <li>100+</li>
+            <li>64+</li>
             <li>64</li>
             <li>32</li>
             <li>16</li>
@@ -452,32 +452,6 @@
         <iframe id="compare-frame-b" class="compare-frame" title="对比右侧雨景"></iframe>
       </div>
     </section>
-
-    <script type="module">
-      // 双雨对比外壳:仅在 ?compare=1 时激活;主场景由 bootstrap 在此模式下跳过启动。
-      const compareParams = new URLSearchParams(window.location.search);
-      if (compareParams.get('compare') === '1') {
-        const shell = document.querySelector('.compare-shell');
-        const pickers = ['a', 'b'].map((side) => ({
-          select: document.querySelector(`#compare-dataset-${side}`),
-          city: document.querySelector(`#compare-city-${side}`),
-          frame: document.querySelector(`#compare-frame-${side}`)
-        }));
-        const srcFor = ({ select, city }) => {
-          const name = city.value.trim();
-          return name
-            ? `?embed=1&city=${encodeURIComponent(name)}`
-            : `?embed=1&dataset=${select.value}`;
-        };
-        const sync = (picker) => { picker.frame.src = srcFor(picker); };
-        for (const picker of pickers) {
-          picker.select.addEventListener('change', () => { picker.city.value = ''; sync(picker); });
-          picker.city.addEventListener('change', () => sync(picker));
-          sync(picker);
-        }
-        shell.hidden = false;
-      }
-    </script>
 
     <script type="module" src="/src/bootstrap.js"></script>
   </body>
