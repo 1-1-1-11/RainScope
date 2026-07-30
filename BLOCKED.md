@@ -1,5 +1,12 @@
 # BLOCKED
 
+## 待裁决：顺手活禁区（任务文档 2026-07-30 指定只登记、不做）
+
+- 666KB 主包分包（Vite chunk >500 kB 警告）：涉及构建配置与代码改动，超出本次白名单。
+- 9:16 竖屏导出：涉及 src/ 与验收口径，待裁决。
+- Open-Meteo 真实数据接入：涉及 src/ 数据层与新的外部依赖关系，待裁决。
+- 修改 `.nvmrc`：不在允许修改清单内，待裁决。
+
 ## 已解除：工作区禁用互联网发布，站点无法改为公开
 
 - 用户已明确要求公开；`update_site_access(access_mode=public)` 返回确定性业务错误：`sites_publish_disabled` / `Publishing Sites to the internet is not enabled for this workspace.`，不是参数猜测或登录问题。
