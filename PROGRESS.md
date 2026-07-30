@@ -1,5 +1,12 @@
 # PROGRESS
 
+## 当前现役状态（2026-07-30）
+
+- 代码真相以 `main` 为准；发布前必须在同一 SHA 通过 `npm.cmd run check`、`node scripts/smoke.mjs` 与 `npm.cmd run test:sites`。
+- 生产真相以 canonical URL 实际返回的 HTML 与资产为准；保存 Sites 版本、Git 推送或本地构建均不单独代表上线。
+- 当前开放项仅见 `BLOCKED.md` 顶部两项：主包分包与 `.nvmrc`；9:16 导出和 Open-Meteo 已实现，不再作为待裁决事项。
+- 下方是按阶段保留的历史验收记录，不可替代上述现役状态或新的 live verification。
+
 ## 2026-07-30 开源发布任务（RainScope 身份切换）
 - 任务 0 核对：`npm.cmd run check` 退出码 0（66 双语键）、`node scripts/smoke.mjs` 退出码 0、Node 测试 5/5，与文档现状一致。
 - 理解的目标：fork 以「雨境 RainScope」身份发布到 github.com/1-1-1-11/RainScope——改作者/仓库元数据与 README 门面、CI 补跑 smoke+test:sites、语义化 commit 并推送；原作归属三串一字不动。

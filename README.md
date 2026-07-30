@@ -53,6 +53,10 @@ npm.cmd run preview
 
 `npm run check` validates the Chinese/English interface and production build. Contributor validation requirements are documented in [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## 发布 / Release
+
+The canonical production site is the Live Demo above. OpenAI Sites releases are manual: validate the current `main`, run `npm.cmd run build:sites`, save the archive against that pushed commit, deploy the saved version, then verify the canonical URL and its loaded assets. A saved version or a successful local build is not proof that production is current.
+
 ## 项目结构 / Structure
 
 ```text
@@ -63,7 +67,9 @@ npm.cmd run preview
 │   ├── rainfall-datasets.js # Sourced demo and reconstructed rainfall datasets
 │   ├── main.js             # Three.js scene, data model and interactions
 │   └── styles.css          # Responsive application styles
-├── public/                 # Runtime assets and Cloudflare headers
+├── public/                 # Runtime assets and Cloudflare Pages header config
+├── worker/                 # OpenAI Sites static-asset fallback
+├── tests/                  # Worker and quality-limit regression checks
 ├── scripts/                # Validation and maintainer media tools
 ├── docs/                   # Architecture, licensing and integration policy
 └── .github/                # CI, dependency updates and contribution templates

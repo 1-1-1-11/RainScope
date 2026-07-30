@@ -9,12 +9,12 @@ Open an issue before a substantial change. Explain the user problem, affected vi
 ## Development
 
 ```bash
-npm ci
-npm run dev
-npm run check
+npm.cmd ci
+npm.cmd run dev
+npm.cmd run check
 ```
 
-Keep the production tuning console development-only. Do not enable source maps, commit generated `dist/` files, add remote runtime dependencies or weaken the production security headers without a documented reason.
+The tuning console is intentionally present in production; preserve its `QUALITY_LIMITS` clamps and release-channel label. Do not enable source maps, commit generated `dist/` files, add an undocumented runtime data provider, or weaken host security headers without a documented reason.
 
 ## Pull requests
 

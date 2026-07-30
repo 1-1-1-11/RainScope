@@ -2,7 +2,7 @@
 
 ## Supported version
 
-Security fixes are applied to the current `main` branch and the production deployment at <https://rainform.pages.dev/>.
+Security fixes are applied to the current `main` branch and the canonical deployment at <https://storm-rainfall-visualization.shiqiyu-ai.chatgpt.site>.
 
 ## Reporting a vulnerability
 

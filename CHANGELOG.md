@@ -4,7 +4,9 @@ All notable Rainform releases are documented here.
 
 ## [Unreleased]
 
-- Public source repository governance, validation and noncommercial licensing.
+- RainScope fork branding, public repository governance, validation and noncommercial licensing.
+- Radar-terminal UI, fact-anchored storm datasets and production tuning controls.
+- Live-city precipitation through Open-Meteo, side-by-side compare mode and browser 9:16 WebM/PNG export.
 
 ## [2.0.0] - 2026-07-23
 

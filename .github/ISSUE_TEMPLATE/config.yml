@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security vulnerability
-    url: https://github.com/luouhe23/Rainform/security/advisories/new
+    url: https://github.com/1-1-1-11/RainScope/security/advisories/new
     about: Report security issues privately.
-  - name: Live Rainform
-    url: https://rainform.pages.dev/
+  - name: Live RainScope
+    url: https://storm-rainfall-visualization.shiqiyu-ai.chatgpt.site
     about: Verify the current production behavior before filing a report.
