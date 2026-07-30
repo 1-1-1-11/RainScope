@@ -1,6 +1,16 @@
 # PROGRESS
 
-1. 状态：任务 0–4、最终浏览器、HTTP、三路对抗审查与产品 v2 生产部署均已完成；公开访问仍受工作区策略阻塞，另有 `BLOCKED.md` 记录的范围外浏览器临时文件无法代删。
+## 2026-07-30 开源发布任务（RainScope 身份切换）
+- 任务 0 核对：`npm.cmd run check` 退出码 0（66 双语键）、`node scripts/smoke.mjs` 退出码 0、Node 测试 5/5，与文档现状一致。
+- 理解的目标：fork 以「雨境 RainScope」身份发布到 github.com/1-1-1-11/RainScope——改作者/仓库元数据与 README 门面、CI 补跑 smoke+test:sites、语义化 commit 并推送；原作归属三串一字不动。
+- 顺序：任务 0 核对 → 身份切换 → README 图片徽章 → CI 补全（含红→绿反证）→ commit 1（现有验收记录）→ commit 2/3 → push；每步前后 check+smoke 全绿。
+- 最大风险：smoke 硬断言三串归属文案（改 README/index.html 时一字不能少）；GitHub 推送凭据不可控，失败则如实记 BLOCKED.md 交付本地就绪。
+- 任务 1 完成（2026-07-30）：package.json author→shiqiyu、description 双语暴雨简介、homepage→chatgpt.site 生产地址、repository/bugs→1-1-1-11/RainScope；name/private/license 未动。index.html title/og:title→「雨境 RainScope · 暴雨数据可视化」、twitter:title→「RainScope · Storm Rainfall」、og:description 同步；三串归属原样保留。README 标题改「# 雨境 RainScope · 暴雨数据可视化」，开头两句声明基于 Rainform 的非商业增强 fork（shiqiyu 维护），Required Notice/归属段/许可段原文保留。验收：`npm.cmd run check` 退出码 0（66 双语键）、`node scripts/smoke.mjs` 退出码 0、`npm.cmd run test:sites` 5/5。
+- 任务 2 完成（2026-07-30）：新建 `.github/assets/`，用已有 Python+Pillow（临时脚本用后已删）压缩 `qa/task3-timeline-zhengzhou-16.png`→`timeline-zhengzhou-16.jpg`（1280×853，95265 字节）与 `qa/sites-v2-effect-console-desktop.png`→`effect-console-desktop.jpg`（441×924，36270 字节），JPEG q80 均 <300KB，README 相对路径引用。徽章：保留 license 徽章，新增 live demo（chatgpt.site 生产地址）与 CI（1-1-1-11/RainScope ci.yml badge）徽章。新增「与原作的差异 / What this fork adds」5 条，数字全部摘自本文件记录（郑州 201.9/624.1、北京 744.8/111.8、水花 foam 2117/spray 1233/crowns 427、128 参数 9 项钳制、哈希冻结 smoke）。验收：check+smoke 全绿（输出见对话）。
+- 任务 3 完成（2026-07-30）：ci.yml 在 Validate 步骤后新增「Run frozen smoke assertions」（`node scripts/smoke.mjs`）与「Run Sites worker and quality-limit tests」（`npm run test:sites`），触发器与依赖未动。反向验证：改前 `src/rainfall-datasets.js` sha256=`f2e22e9365245c01ceaaa6c690d0601ab82272f6784dda8d7c76565872a8c179`；郑州 16:00 的 201.9 临时改 100 后 smoke 明确报红 `Zhengzhou 16:00 anchor must be 201.9 mm / 100 !== 201.9`、退出码 1；立即还原后 sha256 与开工前一致，check+smoke+test:sites 连续退出码 0（输出见对话）。证明新 CI 步骤非恒真摆设。
+- 开工哈希：LICENSE `c0ea4a89…48fabbe5`、NOTICE.md `214e29e3…c8c6c529`、scripts/check-project.mjs `1ed5afcd…47de67`、src/rainfall-datasets.js `f2e22e93…a8c179`。
+
+1. 状态：任务 0–4、最终浏览器、HTTP、三路对抗审查与产品 v2 生产部署均已完成；2026-07-30 验收复验确认站点已公开可访问、14 个范围外临时文件已授权清理，`BLOCKED.md` 无未解除条目。
 2. 目标：保留原作观感与非商业许可，最小增加真实数据集切换、时间轴读数、水花层和可见归属。
 3. 顺序：先原作基线，再数据与切换，再水花，再时间轴，最后冻结 smoke、红绿反证和浏览器验收。
 4. 最大风险：暴雨大数值的构图压缩、重建数据口径与水花“明显但不糊”只能靠真实渲染共同校验。
@@ -50,3 +60,4 @@
 48. 公开访问阻塞：用户授权后调用 public access update，服务返回 `sites_publish_disabled`（工作区未启用 internet publishing）；`get_site` 仍为 owner-only custom，匿名 Node 请求为 401/2192 bytes。未改成 workspace-only 冒充公开，恢复条件与重试步骤已写入 `BLOCKED.md`。
 49. 产品 v2 已部署（2026-07-30）：从 clean HEAD `7c27ff94d9a6403231e75b3ca57db50cff559f9e` 重跑 `npm.cmd run build:sites`、Sites Node 测试 5/5 与 frozen smoke，全部退出码 0；新 archive SHA-256 为 `D6BA3FE00899B231B50B9D94C8399C9C5F5B7E156F6CFF66686EAFD655587D78`，入口及控制台/公开渠道/安全范围 marker 全通过。Sites 成功保存带 archive 的平台版本 3（产品 v2）`appgprj_6a6ab352cf18819180619b63de7720b2~appgver_dd4501ba41b08191b7271a2ea837b184`，随后部署 `appgdep_6a6ae86626c48191bbb698d4398c4c34` 终态 `succeeded`，生产 URL 为 `https://storm-rainfall-visualization.shiqiyu-ai.chatgpt.site`。再次切 public 仍返回 `sites_publish_disabled`；匿名复验为 `HTTP_STATUS=401`、`BYTES=2192`，所以 v2 已上线但目前仍仅 owner 可访问。
 50. 公开访问再次复核（2026-07-30）：按用户新指令重试 `access_mode=public`，Sites 仍返回 `sites_publish_disabled`；随后匿名请求仍为 `HTTP_STATUS=401`、`BYTES=2192`，访问策略没有发生部分成功或状态分叉。
+51. 验收复验与收口（2026-07-30）：frozen smoke 退出码 0、`npm.cmd run check` 退出码 0、Node 测试 5/5，均与冻结记录一致；匿名复验生产 URL 返回 `HTTP_STATUS=200`、`BYTES=12412`，响应为含 dataset/timeline 的真实应用页且 v2 入口 JS 匿名可取，站点已公开可访问，阻塞 1 解除；经用户授权删除工作区根 `.playwright-mcp\` 下 14 个临时文件（102424 字节），阻塞 2 解除；`BLOCKED.md` 现存条目全部为"已解除"。
