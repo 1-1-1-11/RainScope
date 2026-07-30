@@ -30,9 +30,9 @@ const textFiles = files.filter(file => /\.(?:html|css|js|txt)$/.test(file));
 const text = (await Promise.all(textFiles.map(file => readFile(file, 'utf8')))).join('\n');
 
 if (text.includes('sourceMappingURL=')) throw new Error('Production output references source maps.');
-if (text.includes('tuning-panel')) throw new Error('Development tuning panel leaked into production output.');
+if (!text.includes('tuning-panel')) throw new Error('Production output is missing the visual tuning console.');
 if (!text.includes('PolyForm Noncommercial 1.0.0')) {
   throw new Error('Production output is missing the noncommercial license notice.');
 }
 
-console.log(`Distribution checks passed (${relativeFiles.length} files, no source maps or tuning console).`);
+console.log(`Distribution checks passed (${relativeFiles.length} files, no source maps, visual tuning console included).`);

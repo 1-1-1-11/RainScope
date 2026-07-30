@@ -7,6 +7,7 @@ import {
   RAINFALL_DATASETS,
   defaultRainfall
 } from './rainfall-datasets.js';
+import { QUALITY_LIMITS, clampQualityValue } from './quality-limits.js';
 
 function isXEmbeddedLaunch() {
   const userAgent = navigator.userAgent || '';
@@ -241,9 +242,10 @@ function hideWebGLFallback() {
   if (fallback) fallback.hidden = true;
 }
 
-// The visual tuning console is strictly local-development tooling. Production
-// builds always tree-shake the panel, its controls and stored tuning readers.
+// The visual tuning console is available in development and published Vite builds.
+// Keep the DEV flag separate so the release-channel label remains accurate.
 const ENABLE_TUNING_CONSOLE = import.meta.env.DEV;
+const TUNING_CONSOLE_ENABLED = ENABLE_TUNING_CONSOLE || import.meta.env.PROD;
 
 // Rainfall edits are intentionally session-only. Every reload starts from the
 // built-in curve so an older browser value cannot override the current demo.
@@ -748,7 +750,7 @@ const DEFAULT_TUNING = JSON.parse(JSON.stringify(TUNING));
 
 // 面板保存的「需刷新生效」参数，在 shader 构建前覆盖
 ;(function () {
-  if (!ENABLE_TUNING_CONSOLE) return;
+  if (!TUNING_CONSOLE_ENABLED) return;
   const saved = localStorage.getItem('rf-tuning');
   if (!saved) return;
   try {
@@ -869,7 +871,7 @@ function deriveGlobalTheme(baseColor) {
 }
 
 function loadGlobalThemeColor() {
-  if (!ENABLE_TUNING_CONSOLE) return 0x000000;
+  if (!TUNING_CONSOLE_ENABLED) return 0x000000;
   try {
     return normalizeThemeHex(localStorage.getItem(GLOBAL_THEME_STORAGE_KEY) || '#000000');
   } catch {
@@ -1006,13 +1008,11 @@ const QUALITY = isCoarsePointer
 
 const DEFAULT_QUALITY = { ...QUALITY };
 ;(function () {
-  if (!ENABLE_TUNING_CONSOLE) return;
+  if (!TUNING_CONSOLE_ENABLED) return;
   try {
     const saved = JSON.parse(localStorage.getItem('rf-quality') || '{}');
     for (const [key, value] of Object.entries(saved)) {
-      if (key in QUALITY && Number.isFinite(Number(value))) {
-        QUALITY[key] = Math.max(0, Math.round(Number(value)));
-      }
+      if (key in QUALITY) QUALITY[key] = clampQualityValue(key, value, QUALITY[key]);
     }
   } catch {}
 })();
@@ -1029,7 +1029,7 @@ const FEATURES = {
 };
 const DEFAULT_FEATURES = { ...FEATURES };
 ;(function () {
-  if (!ENABLE_TUNING_CONSOLE) return;
+  if (!TUNING_CONSOLE_ENABLED) return;
   try {
     const saved = JSON.parse(localStorage.getItem('rf-features') || '{}');
     for (const [key, value] of Object.entries(saved)) {
@@ -1217,7 +1217,7 @@ window.visualViewport?.addEventListener('resize', onResize);
 window.addEventListener('blur', onInteractionInterrupted);
 
 initRainfallEditor();
-if (ENABLE_TUNING_CONSOLE) initTuningPanelV2();
+if (TUNING_CONSOLE_ENABLED) initTuningPanelV2();
 root.dataset.releaseChannel = ENABLE_TUNING_CONSOLE ? 'development' : 'public';
 animate();
 
@@ -6613,7 +6613,7 @@ function initTuningPanelV2() {
     let value = Number(raw);
     if (!Number.isFinite(value)) return fallback;
 
-    if (path.startsWith('quality.')) return Math.max(0, Math.round(value));
+    if (path.startsWith('quality.')) return clampQualityValue(path.slice(8), value, fallback);
     if (path.endsWith('.fov')) return clamp(value, 1, 179);
     if (path === 'ripple.damping') return clamp(value, 0, 0.99999);
     if (path === 'orbit.damping') return clamp(value, 0, 1);
@@ -6998,17 +6998,17 @@ function initTuningPanelV2() {
     },
     {
       id: 'quality', icon: '⚡', title: '粒子数量与性能',
-      desc: '改变数组和几何容量，需要刷新页面重建；数字框可输入远高于滑块范围的值。',
+      desc: '改变数组和几何容量，需要刷新页面重建；数字框受安全上限约束。',
       params: [
-        num('quality.chains', '主雨串数量', '全天数据雨串的基础数量。', 0, 12000, 10, 'reload'),
-        num('quality.ambientChains', '背景细雨数量', '补足低谷时段的轻雨帘数量。', 0, 8000, 10, 'reload'),
-        num('quality.downpourChains', '暴雨峰值雨串数量', '集中在峰值段的加密雨串数量。', 0, 12000, 10, 'reload'),
-        num('quality.waterfallFilaments', '瀑布雨丝容量', '峰值瀑布实例化雨丝数量。', 0, 12000, 10, 'reload'),
-        num('quality.waterGlints', '水面光点数量', '水面碎光粒子容量；当前为 0 时碎光参数不可见。', 0, 10000, 10, 'reload'),
-        num('quality.impactPearls', '撞击粒子池大小', '泡沫、飞溅与皇冠水花的总容量。', 0, 30000, 50, 'reload'),
-        num('quality.impactEventsPerSecond', '每秒撞击事件预算', '每秒可生成的落水水花事件。', 0, 3000, 5, 'reload'),
-        num('quality.rippleEventsPerSecond', '每秒涟漪事件预算', '每秒写入 GPU 高度场的自然雨滴事件。', 0, 1000, 1, 'reload'),
-        num('quality.maxRipples', '兼容涟漪上限', '旧版兼容参数；当前 GPU 高度场主要使用每秒事件预算。', 0, 1000, 1, 'reload')
+        num('quality.chains', '主雨串数量', '全天数据雨串的基础数量。', 0, QUALITY_LIMITS.chains, 10, 'reload'),
+        num('quality.ambientChains', '背景细雨数量', '补足低谷时段的轻雨帘数量。', 0, QUALITY_LIMITS.ambientChains, 10, 'reload'),
+        num('quality.downpourChains', '暴雨峰值雨串数量', '集中在峰值段的加密雨串数量。', 0, QUALITY_LIMITS.downpourChains, 10, 'reload'),
+        num('quality.waterfallFilaments', '瀑布雨丝容量', '峰值瀑布实例化雨丝数量。', 0, QUALITY_LIMITS.waterfallFilaments, 10, 'reload'),
+        num('quality.waterGlints', '水面光点数量', '水面碎光粒子容量；当前为 0 时碎光参数不可见。', 0, QUALITY_LIMITS.waterGlints, 10, 'reload'),
+        num('quality.impactPearls', '撞击粒子池大小', '泡沫、飞溅与皇冠水花的总容量。', 0, QUALITY_LIMITS.impactPearls, 50, 'reload'),
+        num('quality.impactEventsPerSecond', '每秒撞击事件预算', '每秒可生成的落水水花事件。', 0, QUALITY_LIMITS.impactEventsPerSecond, 5, 'reload'),
+        num('quality.rippleEventsPerSecond', '每秒涟漪事件预算', '每秒写入 GPU 高度场的自然雨滴事件。', 0, QUALITY_LIMITS.rippleEventsPerSecond, 1, 'reload'),
+        num('quality.maxRipples', '兼容涟漪上限', '旧版兼容参数；当前 GPU 高度场主要使用每秒事件预算。', 0, QUALITY_LIMITS.maxRipples, 1, 'reload')
       ]
     }
   ];
@@ -7043,6 +7043,8 @@ function initTuningPanelV2() {
   style.textContent = `
     #tuning-toggle{position:fixed;top:max(18px,env(safe-area-inset-top));right:max(18px,env(safe-area-inset-right));z-index:1201;display:grid;width:40px;height:40px;padding:0;place-items:center;border:1px solid var(--panel-border);border-radius:50%;background:var(--panel-control-bg);color:rgba(194,203,219,.72);font-size:19px;line-height:1;box-shadow:0 10px 28px rgba(0,0,0,.3);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);cursor:pointer;transition:border-color 160ms ease,background-color 160ms ease,color 160ms ease,transform 160ms ease}
     #tuning-toggle:hover{border-color:rgba(194,203,219,.42);background:var(--panel-control-hover);color:#fff;transform:translateY(-1px)}
+    .scene-toolbar>#tuning-toggle{position:static;width:44px;height:44px;border:0;background:transparent;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+    .scene-toolbar>#tuning-toggle:hover{background:rgba(194,203,219,.075);transform:none}
     #tuning-toggle:focus-visible,.tc-search:focus-visible,.tc-tool-btn:focus-visible,.tc-action:focus-visible,.tc-number:focus-visible,.tc-hex:focus-visible,.tc-range:focus-visible,.tc-theme-apply:focus-visible{outline:2px solid var(--panel-accent);outline-offset:2px}
     #tuning-toggle[aria-expanded="true"]{top:max(26px,env(safe-area-inset-top));right:max(22px,env(safe-area-inset-right));width:var(--panel-close-size);height:var(--panel-close-size);border-color:rgba(250,251,255,.14);background:rgba(250,251,255,.055);color:rgba(194,203,219,.68);font-size:0;box-shadow:inset 0 1px 0 rgba(250,251,255,.07);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);transform:none}
     #tuning-toggle[aria-expanded="true"]:hover{border-color:rgba(250,251,255,.28);background:rgba(250,251,255,.11);color:#fff;transform:none}
@@ -7083,7 +7085,7 @@ function initTuningPanelV2() {
         <h2 class="tc-title">效果控制台</h2>
         <span class="tc-count">${allParams.length} 个参数</span>
       </div>
-      <p class="tc-intro"><b>实时</b>参数立即更新；<em>刷新</em>参数先保存、刷新后重建。滑块是建议范围，数字框可直接越界输入。</p>
+      <p class="tc-intro"><b>实时</b>参数立即更新；<em>刷新</em>参数先保存、刷新后重建。视觉参数数字框可越过建议范围，性能数量受安全上限约束。</p>
       <div class="tc-tools">
         <input class="tc-search" type="search" placeholder="搜索参数、说明或键名…" aria-label="搜索参数">
         <button class="tc-tool-btn" type="button" data-action="expand">展开</button>
@@ -7164,7 +7166,13 @@ function initTuningPanelV2() {
       input.setAttribute('aria-label', `${param.label}数值`);
       const soft = document.createElement('div');
       soft.className = 'tc-soft';
-      soft.textContent = `建议滑块 ${param.min} ～ ${param.max} · 数字框不限软范围`;
+      if (param.key.startsWith('quality.')) {
+        input.min = String(param.min);
+        input.max = String(param.max);
+        soft.textContent = `安全范围 ${param.min} ～ ${param.max}`;
+      } else {
+        soft.textContent = `建议滑块 ${param.min} ～ ${param.max} · 数字框不限软范围`;
+      }
 
       const sync = (value) => {
         const numeric = Number(value);
