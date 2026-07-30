@@ -33,3 +33,9 @@ jobs:
 
       - name: Validate project and distribution
         run: npm run check
+
+      - name: Run frozen smoke assertions
+        run: node scripts/smoke.mjs
+
+      - name: Run Sites worker and quality-limit tests
+        run: npm run test:sites
