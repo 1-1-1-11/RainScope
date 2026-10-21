@@ -5,6 +5,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import {
   DEFAULT_RAINFALL_DATASET_ID,
   RAINFALL_DATASETS,
+  datasetIdAfterFailedLiveLookup,
   defaultRainfall
 } from './rainfall-datasets.js';
 import { QUALITY_LIMITS, clampQualityValue } from './quality-limits.js';
@@ -65,7 +66,7 @@ const messages = {
     liveNoResults: '没有找到匹配城市',
     liveLoading: '正在拉取实况降水…',
     liveApplied: ({ name, date }) => `已加载 ${name} ${date} 的实况+预报曲线。`,
-    liveFailed: '实况拉取失败，已保留当前数据集',
+    liveFailed: '实况拉取失败，已停在可用的数据集',
     sourceLive: 'Open-Meteo 实况 + 预报',
     datasetLive: '实况城市',
     compareOpen: '双雨对比模式',
@@ -180,7 +181,7 @@ const messages = {
     liveNoResults: 'No matching city',
     liveLoading: 'Fetching live precipitation…',
     liveApplied: ({ name, date }) => `Loaded live + forecast curve for ${name} (${date}).`,
-    liveFailed: 'Live fetch failed; current dataset kept',
+    liveFailed: 'Live fetch failed; showing the last usable dataset',
     sourceLive: 'Open-Meteo live + forecast',
     datasetLive: 'Live city',
     compareOpen: 'Side-by-side compare',
@@ -410,10 +411,21 @@ async function applyLiveCity(place) {
     }
     setLiveStatus(i18n('liveApplied', { name, date }));
   } catch (error) {
-    clearLiveCity();
-    // 失败时回退到进入前的数据集,避免下拉框停在已隐藏的 live 选项上。
-    activeRainfallDatasetId = previousDatasetId;
-    if (rainfallDatasetSelect && RAINFALL_DATASETS[previousDatasetId]) {
+    // 失败时停在进入前的内置/自定义曲线。若当前已是实况城市，则回到
+    // 上一个内置数据集，避免下拉框停在已隐藏的 live 选项上。
+    const fallbackId = datasetIdAfterFailedLiveLookup(previousDatasetId, builtInDatasetId);
+    if (previousDatasetId === 'live') {
+      const dataset = RAINFALL_DATASETS[fallbackId];
+      clearLiveCity();
+      activeRainfallDatasetId = dataset.id;
+      builtInDatasetId = dataset.id;
+      if (rainfallDatasetSelect) rainfallDatasetSelect.value = dataset.id;
+      if (rainfallDatasetNote) {
+        rainfallDatasetNote.dataset.i18n = dataset.noteKey;
+        rainfallDatasetNote.textContent = i18n(dataset.noteKey);
+      }
+      applyRainfallData(dataset.values);
+    } else if (rainfallDatasetSelect && RAINFALL_DATASETS[previousDatasetId]) {
       rainfallDatasetSelect.value = previousDatasetId;
     }
     setLiveStatus(i18n('liveFailed'));
@@ -491,6 +503,7 @@ const TUNING_CONSOLE_ENABLED = ENABLE_TUNING_CONSOLE || import.meta.env.PROD;
 // built-in curve so an older browser value cannot override the current demo.
 let activeRainfall = [...defaultRainfall];
 let activeRainfallDatasetId = DEFAULT_RAINFALL_DATASET_ID;
+let builtInDatasetId = DEFAULT_RAINFALL_DATASET_ID;
 let rainfallMax = Math.max(...activeRainfall);
 let axisMax = 12.8;
 let peakWaterfallRanges = [];
@@ -1493,6 +1506,7 @@ root.dataset.releaseChannel = ENABLE_TUNING_CONSOLE ? 'development' : 'public';
     const dataset = RAINFALL_DATASETS[presetDatasetId];
     clearLiveCity();
     activeRainfallDatasetId = dataset.id;
+    builtInDatasetId = dataset.id;
     if (rainfallDatasetSelect) rainfallDatasetSelect.value = dataset.id;
     if (rainfallDatasetNote) {
       rainfallDatasetNote.dataset.i18n = dataset.noteKey;
@@ -6849,6 +6863,7 @@ function initRainfallEditor() {
     }
     clearLiveCity();
     activeRainfallDatasetId = dataset.id;
+    builtInDatasetId = dataset.id;
     applyRainfallData(dataset.values);
     syncInputs(activeRainfall);
     if (rainfallDatasetNote) {
@@ -7036,6 +7051,7 @@ function initRainfallEditor() {
     const dataset = RAINFALL_DATASETS[DEFAULT_RAINFALL_DATASET_ID];
     clearLiveCity();
     activeRainfallDatasetId = dataset.id;
+    builtInDatasetId = dataset.id;
     if (rainfallDatasetSelect) rainfallDatasetSelect.value = dataset.id;
     if (rainfallDatasetNote) {
       rainfallDatasetNote.dataset.i18n = dataset.noteKey;

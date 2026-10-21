@@ -1,107 +1,113 @@
-# 雨境 RainScope · 暴雨数据可视化
+# 雨境 RainScope
 
-[![License](https://img.shields.io/badge/license-PolyForm_Noncommercial_1.0.0-4c4c4c)](LICENSE)
-[![Live Demo](https://img.shields.io/badge/live_demo-storm--rainfall--visualization.shiqiyu--ai.chatgpt.site-2ea44f)](https://storm-rainfall-visualization.shiqiyu-ai.chatgpt.site)
+把 00:00–24:00 的 25 个逐时降雨值变成可交互的 Three.js/WebGL 雨景。
+
+RainScope turns 25 hourly rainfall values, from 00:00 through 24:00, into an interactive Three.js/WebGL rain scene.
+
 [![CI](https://github.com/1-1-1-11/RainScope/actions/workflows/ci.yml/badge.svg)](https://github.com/1-1-1-11/RainScope/actions/workflows/ci.yml)
+[![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm_Noncommercial_1.0.0-4c4c4c)](LICENSE)
 
-> **Deployment note:** the Live Demo serves its independently deployed version; it never proves that production matches source `main`. The current production state and any release block are recorded at the top of [PROGRESS.md](PROGRESS.md).
+**Live demo / 在线演示：** <https://storm-rainfall-visualization.shiqiyu-ai.chatgpt.site>
 
 ![雨境 RainScope · 郑州 7·20 暴雨 16:00 时刻与时间轴](.github/assets/timeline-zhengzhou-16.jpg)
 
-雨境 RainScope 是基于 [Rainform / 数据成雨](https://rainform.pages.dev/)（© 2026 afterimage，PolyForm Noncommercial 1.0.0）的非商业增强 fork，由 shiqiyu 维护。它把 00:00–24:00 的 25 个逐时降雨数据点转化为实时 Three.js/WebGL 粒子雨景，并增加事实锚定的暴雨重建数据集、数据集切换、时间轴读数与水花层。
+RainScope is a noncommercial enhancement fork of [Rainform / 数据成雨](https://rainform.pages.dev/) (© 2026 afterimage, PolyForm Noncommercial 1.0.0), maintained by shiqiyu. 郑州 7·20 与北京 23·7 的逐时曲线是围绕官方锚点做的重建，不是官方逐时观测。
 
-RainScope is a noncommercial enhancement fork of [Rainform / 数据成雨](https://rainform.pages.dev/) (© 2026 afterimage, PolyForm Noncommercial 1.0.0), maintained by shiqiyu. It turns 25 hourly rainfall values from 00:00–24:00 into an interactive Three.js/WebGL landscape, with fact-anchored storm reconstructions, dataset switching, a timeline readout and splash impacts.
+## Quick start / 快速开始
 
-## 与原作的差异 / What this fork adds
-
-- **真实暴雨数据集 / Real storm datasets**：郑州 7·20（重建）16:00 峰值 201.9 mm/h、重建日合计 624.1 mm；北京 23·7（重建）保留 744.8 mm 过程累计元数据，小时锚点 111.8 mm/h（10:00）。Reconstructed Zhengzhou 7·20 (201.9 mm/h at 16:00, 624.1 mm daily) and Beijing 23·7 (744.8 mm process total, 111.8 mm/h hourly anchor) datasets.
-- **水花溅落层 / Splash impact layer**：郑州 16:00/201.9 现场实测 foam 2117、spray 1233、crowns 427 个粒子。Measured 2117 foam, 1233 spray and 427 crown particles at the Zhengzhou 16:00 peak.
-- **0–24 时间轴 / 0–24 timeline**：25 点逐时曲线配原生滑块与实时读数，拖到 16:00 即显示 201.9 mm/h。A native 0–24 h slider with live readout over the 25-point hourly curve.
-- **生产可用的 128 参数效果控制台 / Production 128-parameter effect console**：实时调节粒子、水花与画质，9 个性能输入带安全钳制上限，改动持久化。Live tuning of 128 parameters with safe clamps on 9 performance inputs and local persistence.
-
-  ![128 参数效果控制台 / 128-parameter effect console](.github/assets/effect-console-desktop.jpg)
-
-- **冻结 smoke + CI / Frozen smoke + CI**：smoke 以哈希锁定 `LICENSE`、`NOTICE.md` 与判卷脚本，CI 连续跑 `npm run check`、smoke 与 Node 测试三道验收。Hash-frozen smoke protects license and grading files; CI runs check, smoke and Node tests on every push.
-- **雷达终端设计语言 / Radar terminal UI**：雨幕按真实 mm/h 走多普勒色阶染色（青→绿→黄→橙→红），配顶部状态带、强度色阶标尺与实时数据控制台（最大/平均/累计/时长 + 五档强度分布）。Rain strands are dyed by real intensity on a Doppler-style scale, with a status bar, intensity legend and a live stats console.
-- **Open-Meteo 实况城市 / Live cities**：搜索任意城市即可把当地今日 00:00–24:00 的真实降水（已过为实况、未到为预报）驱动雨幕，离线或失败自动回退内置数据集。Search any city to drive the scene with real hourly precipitation, with graceful offline fallback.
-- **双雨对比 + 竖屏导出 / Compare & vertical export**：`?compare=1` 双场景同屏对比（如郑州 7·20 vs 你的城市实况）；一键导出 1080×1920 竖屏视频（可自动播放 00:00→24:00 全天过程）或当前帧 PNG。Side-by-side storm comparison and one-click 9:16 video/PNG export for short-video platforms.
-
-> **源码许可 / Source terms:** 源码仅授权非商业学习、修改与分发；禁止商业使用、商业产品集成、广告和品牌项目。Source is available for noncommercial use only and is not OSI-approved open-source software. See [LICENSE](LICENSE) and [COMMERCIAL_USE.md](COMMERCIAL_USE.md).
-
-## 功能 / Highlights
-
-- 原作演示、郑州 7·20 与北京 23·7 三套 25 点曲线 / Three 25-point curves: original demo, Zhengzhou 7·20 and Beijing 23·7
-- 25 个逐时降雨数据点与实时可拖拽曲线 / 25 hourly rainfall values with a live draggable curve
-- 数据驱动的粒子雨幕、峰值瀑布、水面波纹、坐标轴与雨声 / Data-driven rain, waterfall, water, axes and sound
-- 桌面端视角拖拽、双击重置、声音切换与精确数据输入 / Desktop camera, reset, sound and precise editing
-- 移动端横屏适配、安全区域与方向切换恢复 / Mobile landscape, safe-area and orientation recovery
-- 中英文界面 / Chinese and English interface
-
-## 本地开发 / Development
-
-Requirements: Node.js 20 or newer.
+Node.js 20 or newer.
 
 ```bash
-npm.cmd ci
-npm.cmd run dev
+npm ci
+npm run dev
 ```
 
-## 构建 / Build
+On Windows, if `npm` is not the Node.js entry point, use `npm.cmd` for the same commands.
+
+Open the printed local URL. Choose a dataset, drag the 0–24 timeline, or search a city. `?compare=1` opens the side-by-side view.
+
+Checks used by CI:
 
 ```bash
-npm.cmd run check
-npm.cmd run preview
+npm run check
+node scripts/smoke.mjs
+npm run test:sites
 ```
 
-`npm run check` validates the Chinese/English interface and production build. Contributor validation requirements are documented in [CONTRIBUTING.md](CONTRIBUTING.md).
+`npm run test:sites` expects `dist/` from `npm run check`. It then builds the OpenAI Sites package and checks the worker.
 
-## 发布 / Release
+## Data sources / 数据来源
 
-The canonical production site is the Live Demo above. OpenAI Sites releases are manual: validate the current `main`, run `npm.cmd run build:sites`, save the archive against that pushed commit, deploy the saved version, then verify the canonical URL and its loaded assets. A saved version or a successful local build is not proof that production is current.
+| Series | What it is | Official anchor |
+| --- | --- | --- |
+| `demo` | Rainform 原作演示曲线，不是观测 | — |
+| `zhengzhou-720` | 2021-07-20 重建 | 郑州国家气象站日雨量 624.1 mm；16:00–17:00 为 201.9 mm |
+| `beijing-23-7` | 2023-07-31 附近的 24 小时重建 | 王家园水库 83 小时过程最大 744.8 mm（不是小时雨强）；千灵山 10:00–11:00 为 111.8 mm/h |
+| Live city | 运行时向 Open-Meteo 读取当地今日逐时降水 | 不入库；失败时回到上一个内置或自定义数据集 |
 
-## 项目结构 / Structure
+Citations, and the line between anchors and reconstructed hours, are in [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md). To cite the software, use [CITATION.cff](CITATION.cff).
 
-```text
-.
-├── index.html              # Application shell, metadata and controls
-├── src/
-│   ├── bootstrap.js        # Locale, mobile gate and deferred startup
-│   ├── rainfall-datasets.js # Sourced demo and reconstructed rainfall datasets
-│   ├── main.js             # Three.js scene, data model and interactions
-│   └── styles.css          # Responsive application styles
-├── public/                 # Runtime assets and Cloudflare Pages header config
-├── worker/                 # OpenAI Sites static-asset fallback
-├── tests/                  # Worker and quality-limit regression checks
-├── scripts/                # Validation and maintainer media tools
-├── docs/                   # Architecture, licensing and integration policy
-└── .github/                # CI, dependency updates and contribution templates
-```
-
-## 来源与归属 / Attribution
+## Upstream / 上游
 
 Rain visualization derived from Rainform / 数据成雨 by afterimage  
 https://rainform.pages.dev/
 
-本增强版仅作非商业学习、修改与分发，保留原作 `LICENSE`、`NOTICE.md` 与所有 Required Notice。
-
-## 使用与许可 / Usage and license
-
-Noncommercial study, modification and redistribution are permitted under the [PolyForm Noncommercial License 1.0.0](LICENSE). Every copy or derived work must retain:
+本仓库保留原作 `LICENSE`、`NOTICE.md` 与每一条 Required Notice。署名不能把商业使用变成被允许的使用。
 
 ```text
 Required Notice: Rainform / 数据成雨 © 2026 afterimage — https://rainform.pages.dev/
 ```
 
-Attribution alone does not make commercial use permissible. Work from this source repository, preserve the license and notice, and read the [integration policy](docs/INTEGRATION.md) before combining Rainform with another project.
+## License / 许可
 
-The source license does not grant rights to use the Rainform / 数据成雨 name, logo or visual identity as another product's branding. See [TRADEMARKS.md](TRADEMARKS.md).
+Noncommercial study, modification, and redistribution are permitted under the [PolyForm Noncommercial License 1.0.0](LICENSE). This is source-available software. It is not an OSI-approved open-source license. Commercial use, commercial product integration, advertising, and brand work are not permitted. See [COMMERCIAL_USE.md](COMMERCIAL_USE.md) and [docs/INTEGRATION.md](docs/INTEGRATION.md).
+
+The license does not grant the Rainform / 数据成雨 name, logo, or visual identity. See [TRADEMARKS.md](TRADEMARKS.md).
 
 Copyright © 2026 afterimage.
 
-## 项目文档 / Project documentation
+## What this fork adds / 相对原作
+
+- **暴雨重建数据集。** 郑州 7·20 在 16:00 锚定 201.9 mm/h，重建日合计 624.1 mm。北京 23·7 保留 744.8 mm 过程累计元数据，小时锚点是 10:00 的 111.8 mm/h。
+- **水花层。** 郑州 16:00 / 201.9 mm/h 现场约 foam 2117、spray 1233、crowns 427。
+- **0–24 时间轴。** 25 个点，拖到 16:00 即显示 201.9 mm/h。
+- **生产环境效果控制台。** 128 个参数可调，其中 9 个性能输入有 `QUALITY_LIMITS` 钳制，改动存在本地。
+
+  ![128 参数效果控制台](.github/assets/effect-console-desktop.jpg)
+
+- **雷达终端界面。** 雨丝按 mm/h 走青→绿→黄→橙→红色阶，并显示最大、平均、累计、时长和强度分布。
+- **实况城市。** 搜索城市后，用 Open-Meteo 的当地今日逐时降水驱动雨景。请求失败会回到之前的内置或自定义数据集。
+- **对比与竖屏导出。** `?compare=1` 同屏对比两场雨。可导出 1080×1920 WebM，或当前帧 PNG。
+- **冻结检查。** smoke 用哈希锁住 `LICENSE`、`NOTICE.md` 和 `scripts/check-project.mjs`。
+
+## Project layout / 目录
+
+```text
+.
+├── index.html                 # Shell, metadata, and controls
+├── src/bootstrap.js           # Locale, mobile gate, compare, and embed
+├── src/rainfall-datasets.js   # 25-point dataset contract
+├── src/main.js                # Three.js scene and interactions
+├── public/                    # Runtime assets and Cloudflare Pages headers
+├── worker/                    # OpenAI Sites static-asset fallback
+├── tests/                     # Worker, quality-limit, lookup, and release notes
+├── scripts/                   # Validation, Sites packaging, release notes
+├── docs/                      # Architecture, data sources, integration
+└── .github/                   # CI, release workflow, and templates
+```
+
+## Release / 发布
+
+The first RainScope tag is `v1.0.0`. Pushing a `vX.Y.Z` tag runs [.github/workflows/release.yml](.github/workflows/release.yml): it repeats the CI checks, then publishes a GitHub Release whose notes come from the matching section of [CHANGELOG.md](CHANGELOG.md).
+
+The live demo is deployed separately on OpenAI Sites. A green CI run, a saved Sites version, or a Git tag does not by itself prove that production matches `main`. After a Sites deploy, verify the canonical URL and the assets it loads. `public/_headers` applies to Cloudflare Pages-style hosts; the Sites worker does not apply it automatically.
+
+## Contributing / 参与
+
+Issues and pull requests are welcome for reproducible bugs, data-source corrections, and focused improvements. Read [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). Report vulnerabilities privately: [SECURITY.md](SECURITY.md).
 
 - Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- Contribution guide: [CONTRIBUTING.md](CONTRIBUTING.md)
-- Security reports: [SECURITY.md](SECURITY.md)
-- Release history: [CHANGELOG.md](CHANGELOG.md)
+- Data sources: [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md)
+- Citation: [CITATION.cff](CITATION.cff)
+- Changelog: [CHANGELOG.md](CHANGELOG.md)
 - Third-party notices: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)

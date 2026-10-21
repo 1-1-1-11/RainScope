@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use RainScope, please cite this repository and the upstream Rainform project. Reconstructed hourly values are not official observations; cite the sources in docs/DATA_SOURCES.md for the official anchors."
+title: "雨境 RainScope"
+abstract: "A noncommercial Three.js/WebGL visualization that turns 25 hourly rainfall values into an interactive rain scene. It is a derivative of Rainform / 数据成雨 by afterimage, with fact-anchored storm reconstructions, live-city precipitation, and a timeline."
+type: software
+authors:
+  - name: "shiqiyu"
+repository-code: "https://github.com/1-1-1-11/RainScope"
+url: "https://storm-rainfall-visualization.shiqiyu-ai.chatgpt.site"
+license: "PolyForm-Noncommercial-1.0.0"
+version: "1.0.0"
+date-released: "2026-10-21"
+keywords:
+  - rainfall
+  - visualization
+  - three.js
+  - webgl
+preferred-citation:
+  type: software
+  title: "Rainform / 数据成雨"
+  authors:
+    - name: "afterimage"
+  year: 2026
+  url: "https://rainform.pages.dev/"
+  notes: "RainScope is a noncommercial derivative. Retain the Required Notice: Rainform / 数据成雨 © 2026 afterimage — https://rainform.pages.dev/"

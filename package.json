@@ -1,6 +1,6 @@
 {
   "name": "rainform",
-  "version": "2.0.0",
+  "version": "1.0.0",
   "private": true,
   "description": "雨境 RainScope · 暴雨数据可视化：把真实暴雨逐时数据转化为交互式 Three.js/WebGL 雨景。An interactive Three.js/WebGL storm rainfall visualization driven by fact-anchored hourly data.",
   "license": "PolyForm-Noncommercial-1.0.0",
@@ -26,13 +26,13 @@
     "check:project": "node scripts/check-project.mjs",
     "check:dist": "node scripts/check-dist.mjs",
     "check": "npm run check:project && npm run build && npm run check:dist",
-    "test:sites": "node --test tests/sites-worker.test.mjs tests/quality-limits.test.mjs"
+    "test:sites": "node --test tests/sites-worker.test.mjs tests/quality-limits.test.mjs tests/live-lookup.test.mjs tests/release-notes.test.mjs"
   },
   "dependencies": {
     "three": "^0.165.0"
   },
   "devDependencies": {
-    "vite": "^6.4.3"
+    "vite": "^6.4.5"
   },
   "overrides": {
     "postcss": "8.5.23"
