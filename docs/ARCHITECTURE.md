@@ -28,7 +28,7 @@ Seeded random generators keep the composition stable across rebuilds. Avoid repl
 - The rainfall editor previews curve changes and rebuilds systems after input.
 - Audio playback uses intent and source tokens to prevent overlapping sources during rapid toggles.
 - Rainfall edits are session-only by design; refresh restores the built-in curve.
-- Live-city search reads Open-Meteo hourly precipitation; a failed request restores the prior built-in dataset.
+- Live-city search reads Open-Meteo hourly precipitation. A failed request keeps the built-in or custom dataset already on screen. If a live city was showing, it falls back to the last built-in dataset.
 - `?compare=1` composes two embedded scenes, while the 9:16 exporter records WebM or produces a PNG in the browser.
 
 ## Production boundary

@@ -1,8 +1,10 @@
 // Required Notice: Rainform / 数据成雨 © 2026 afterimage — https://rainform.pages.dev/
 
 import assert from 'node:assert/strict';
-import { access } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
+import { access, readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 import worker from '../worker/index.js';
 
 test('serves existing static assets without a fallback', async () => {
@@ -64,7 +66,25 @@ test('does not turn missing API or write requests into the app shell', async () 
 });
 
 test('emits the Sites packaging contract', async () => {
-  await access(new URL('../.sites-build/dist/client/index.html', import.meta.url));
-  await access(new URL('../.sites-build/dist/server/index.js', import.meta.url));
-  await access(new URL('../.sites-build/dist/.openai/hosting.json', import.meta.url));
+  const root = fileURLToPath(new URL('..', import.meta.url));
+  try {
+    await access(new URL('../dist/index.html', import.meta.url));
+  } catch {
+    throw new Error('Sites packaging test requires dist/ from `npm run check` before `npm run test:sites`.');
+  }
+
+  const prepared = spawnSync(process.execPath, ['scripts/prepare-sites-build.mjs'], {
+    cwd: root,
+    encoding: 'utf8'
+  });
+  assert.equal(prepared.status, 0, prepared.stderr || prepared.stdout);
+
+  const clientUrl = new URL('../.sites-build/dist/client/index.html', import.meta.url);
+  const serverUrl = new URL('../.sites-build/dist/server/index.js', import.meta.url);
+  const hostingUrl = new URL('../.sites-build/dist/.openai/hosting.json', import.meta.url);
+  await access(clientUrl);
+  await access(serverUrl);
+  await access(hostingUrl);
+  assert.match(await readFile(serverUrl, 'utf8'), /env\.ASSETS\.fetch/);
+  assert.match(await readFile(hostingUrl, 'utf8'), /"project_id"/);
 });

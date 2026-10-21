@@ -1,6 +1,8 @@
-# Contributing to Rainform
+# Contributing to RainScope
 
-Thanks for helping improve Rainform. This project treats visual behavior as product behavior: rendering, timing, composition, text and responsive layout changes require the same care as functional changes.
+Thanks for helping improve RainScope, the noncommercial fork of Rainform / 数据成雨. This project treats visual behavior as product behavior: rendering, timing, composition, text and responsive layout changes require the same care as functional changes.
+
+By participating you agree to the [Code of Conduct](CODE_OF_CONDUCT.md). Reconstructed rainfall must stay labeled as a reconstruction. Do not present those hourly values as official observations.
 
 ## Before starting
 
@@ -9,10 +11,14 @@ Open an issue before a substantial change. Explain the user problem, affected vi
 ## Development
 
 ```bash
-npm.cmd ci
-npm.cmd run dev
-npm.cmd run check
+npm ci
+npm run dev
+npm run check
+node scripts/smoke.mjs
+npm run test:sites
 ```
+
+On Windows, if `npm` is not the Node.js entry point, use `npm.cmd` for the same commands. `npm run test:sites` expects `dist/` from `npm run check`.
 
 The tuning console is intentionally present in production; preserve its `QUALITY_LIMITS` clamps and release-channel label. Do not enable source maps, commit generated `dist/` files, add an undocumented runtime data provider, or weaken host security headers without a documented reason.
 

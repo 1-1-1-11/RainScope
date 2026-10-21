@@ -72,3 +72,18 @@ export const RAINFALL_DATASETS = Object.freeze({
 });
 
 export const defaultRainfall = RAINFALL_DATASETS[DEFAULT_RAINFALL_DATASET_ID].values;
+
+/**
+ * A failed live-city lookup must not leave the hidden `live` option selected.
+ * Built-in and custom datasets stay as they were. An active live city falls
+ * back to the last built-in dataset.
+ */
+export function datasetIdAfterFailedLiveLookup(
+  previousDatasetId,
+  builtInDatasetId = DEFAULT_RAINFALL_DATASET_ID
+) {
+  if (previousDatasetId !== 'live') return previousDatasetId;
+  return RAINFALL_DATASETS[builtInDatasetId]
+    ? builtInDatasetId
+    : DEFAULT_RAINFALL_DATASET_ID;
+}
